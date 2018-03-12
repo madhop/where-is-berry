@@ -1,10 +1,10 @@
 import socket
 import json
 
-def getData():
+def getData(address, port):
 
-    UDP_IP = "127.0.0.1"
-    UDP_PORT = 12346
+    UDP_IP = address
+    UDP_PORT = port
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
     sock.bind((UDP_IP, UDP_PORT))

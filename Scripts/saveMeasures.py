@@ -7,7 +7,7 @@ mongo = pm.MongoClient()
 db = mongo.beacons
 collection = db.measures
 
-beacons = bc.getBeaconsList()
+beacons = bc.getBeacons("list")
 
 position = {}
 position['x'] = 115

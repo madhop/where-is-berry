@@ -6,7 +6,7 @@ point['x'] = 260
 point['y'] = 200
 point['z'] = 55
 
-beacons = bn.getBeaconsDict()
+beacons = bn.getBeacons("dict")
 
 distance = {}
 

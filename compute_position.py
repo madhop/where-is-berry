@@ -1,15 +1,11 @@
-import socket
+import udpy
 import ast
 
-UDP_IP = "127.0.0.1"
-UDP_PORT = 12346
-
-sock = socket.socket(socket.AF_INET, # Internet
-                     socket.SOCK_DGRAM) # UDP
-sock.bind((UDP_IP, UDP_PORT))
+udp_dao = udpy.UDP_DAO('127.0.0.1', 12346)
 
 while True:
-    data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+    data = udp_dao.read_data()
+    print 'qui'
     # convert in dictionary
     data_dic = ast.literal_eval(data)
     if data_dic['major'] == 1 and (data_dic['minor'] == 1 or data_dic['minor'] == 2 or data_dic['minor'] == 3 or data_dic['minor'] == 4):

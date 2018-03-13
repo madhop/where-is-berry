@@ -10,6 +10,7 @@ sock.bind((UDP_IP, UDP_PORT))
 
 while True:
     data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-    #print "received message:", data
+    # convert in dictionary
     data_dic = ast.literal_eval(data)
-    print 'rssi: ' + str(data_dic['rssi'])
+    if data_dic['major'] == 1 and (data_dic['minor'] == 1 or data_dic['minor'] == 2 or data_dic['minor'] == 3 or data_dic['minor'] == 4):
+        print  'rssi: ' + str(data_dic['rssi']) + ' - minor: ' + str(data_dic['minor'])

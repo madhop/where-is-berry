@@ -2,6 +2,7 @@ import numpy as np
 import beacons as bn
 import pymongo as pm
 import pprint
+import data
 
 mongo = pm.MongoClient()
 db = mongo.beacons
@@ -21,9 +22,9 @@ position['y'] = 210
 position['z'] = 53
 '''
 
-measures = list(collection.find({'realPosition' : {'x' : 250, 'y' : 35, 'z' : 73}}))
+condition = {'realPosition' : {'x' : 250, 'y' : 35, 'z' : 73}}
 
-pprint.pprint(measures)
+measures = data.getDataMongo("localhost", "default", "beacons", "measures", condition, 10)
 
 A = np.empty([0,3])
 y = np.empty([0,1])

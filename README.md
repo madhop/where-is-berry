@@ -14,3 +14,4 @@ mongo 2.6.10
 python 2.7.12
 pymongo 3.6.1
 numpy
+paho-mqtt

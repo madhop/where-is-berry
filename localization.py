@@ -36,6 +36,5 @@ while True:
                 print  'minor: ' + str(data['minor']) + ' - rssi: ' + str(data['rssi']) + ' - time: ' + str(data['timestamp']) + ' - dist: ' + str(dist)
         print 'distances: ', len(distances)
         end_time = time.time() * 1000
+
         
-        #avg_time = ((end_time - start_time)/(i+1)) + avg_time*(i/(i+1))
-        #print 'time: ', end_time-ts_milli

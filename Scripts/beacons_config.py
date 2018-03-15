@@ -1,7 +1,7 @@
 """
 create a list of dictionary:
 - key= uuid:major:minor
-- value= corresponding beacon 
+- value= corresponding beacon
 """
 
 import beacon as b
@@ -16,4 +16,4 @@ for i in input_list:
     beacons[_id] = estimote
 
 def estimotes():
-    return beacons, [m.minor for m in beacons.values()]
+    return beacons

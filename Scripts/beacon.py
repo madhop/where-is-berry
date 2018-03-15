@@ -1,5 +1,5 @@
 class Beacon:
-    def __init__(self,uuid,major,minor,x,y,z):
+    def __init__(self,uuid,major,minor,x,y,z = 0):
         self.uuid = uuid
         self.major = major
         self.minor = minor

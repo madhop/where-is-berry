@@ -1,11 +1,9 @@
 import socket
 
 class UDP_DAO:
-
     def __init__(self, ip, port):
         self.UDP_IP = ip
         self.UDP_PORT = port
-        print 'UDP_DAO: ' + self.UDP_IP + ":" + str(self.UDP_PORT)
 
     def readData(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP

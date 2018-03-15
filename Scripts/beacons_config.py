@@ -7,7 +7,10 @@ create a list of dictionary:
 import beacon as b
 import pprint as pp
 input_list = [{'uuid': "b9407f30f5f8466eaff925556b57fe6d", 'major': 1, 'minor': 1, 'x':3, 'y': 3, 'z':0},
-{'uuid': "b9407f30f5f8466eaff925556b57fe6d", 'major': 1, 'minor': 4, 'x':3, 'y': 67, 'z':0}]
+{'uuid': "b9407f30f5f8466eaff925556b57fe6d", 'major': 1, 'minor': 4, 'x':3, 'y': 67, 'z':0},
+{'uuid': "b9407f30f5f8466eaff925556b57fe6d", 'major': 1, 'minor': 2, 'x':3, 'y': 67, 'z':0},
+{'uuid': "b9407f30f5f8466eaff925556b57fe6d", 'major': 1, 'minor': 3, 'x':3, 'y': 67, 'z':0},
+{'uuid': "b9407f30f5f8466eaff925556b57fe6d", 'major': 1, 'minor': 5, 'x':3, 'y': 67, 'z':0}]
 
 beacons = {}
 for i in input_list:
@@ -16,4 +19,5 @@ for i in input_list:
     beacons[_id] = estimote
 
 def estimotes():
+    print 'there are ', len(beacons), 'beacons'
     return beacons

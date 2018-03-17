@@ -179,7 +179,7 @@
         "type": "function",
         "z": "20be477.96922b8",
         "name": "Store Location",
-        "func": "function replaceAll(str, source, target) {\n  return str.split(source).join(target);\n}\ndata = msg.payload\ndata = replaceAll(data, \"\\'\", \"\\\"\")\ndata = JSON.parse(data)\ncontext.global.set(\"location\",data)\nmsg.payload = data\nreturn msg;",
+        "func": "if(msg.payload != \"None\"){\n    data = msg.payload\n    data = replaceAll(data, \"\\'\", \"\\\"\")\n    data = JSON.parse(data)\n    context.global.set(\"location\",data)\n    msg.payload = data\n    return msg;\n}\nfunction replaceAll(str, source, target) {\n  return str.split(source).join(target);\n}\n",
         "outputs": 1,
         "noerr": 0,
         "x": 540,
@@ -270,8 +270,8 @@
         "console": false,
         "tostatus": false,
         "complete": "false",
-        "x": 828.7499999999998,
-        "y": 239.99999999999991,
+        "x": 822.75,
+        "y": 244,
         "wires": []
     },
     {
@@ -283,7 +283,7 @@
         "outputs": 1,
         "noerr": 0,
         "x": 493,
-        "y": 225,
+        "y": 236,
         "wires": [
             []
         ]
@@ -297,7 +297,7 @@
         "fieldType": "msg",
         "format": "handlebars",
         "syntax": "mustache",
-        "template": "<head>\n    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n    <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>\n    <!--<script src=\"/home/luca/where-is-berry/NodeRed/lib/plotly-latest.min.js\"></script>-->\n</head>\n<body>\n<div id=\"map\" style=\"width:600px;height:250px;\"></div>\n<script>\n\tvar map = document.getElementById('map');\n \n   \n    var pos = {\n        x: [],\n        y: [],\n        type: 'scatter'\n    };\n \n    var map_data = [pos];\n    \n    var layout = {\n        title:'Map'\n    };\n \n    Plotly.newPlot(map, map_data,layout );\n    \n    function update(){\n        $.getJSON( \"http://localhost:1880/where-is-berry/getLocation\", function(response){updatePlot(response)});\n    }\n    \n    function updatePlot(data){\n        Plotly.restyle(map, 'x', [[data.x]]);\n\t    Plotly.restyle(map, 'y', [[data.y]]);\n    }\n\t \n\tupdate()\n\t\n</script>\n</body>",
+        "template": "<head>\n    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n    <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>\n    <!--<script src=\"/home/luca/where-is-berry/NodeRed/lib/plotly-latest.min.js\"></script>-->\n</head>\n<body>\n<div id=\"map\" style=\"width:600px;height:250px;\"></div>\n<script>\n\tvar map = document.getElementById('map');\n \n   \n    var pos = {\n        x: [],\n        y: [],\n        type: 'scatter'\n    };\n    \n    pos_data = {\n        x : [],\n        y : [],\n        z : []\n    };\n    x = [];\n    y = [];\n    z = [];\n \n    var map_data = [pos];\n    \n    var layout = {\n        autosize: false,\n        width: 500,\n        height: 500,\n        xaxis: {range: [0, 5]},\n        yaxis: {range: [5, 0]}\n        \n    };\n \n    Plotly.newPlot(map, map_data,layout );\n    \n    function update(){\n        $.getJSON( \"http://localhost:1880/where-is-berry/getLocation\", function(response){updatePlotBatch(response)});\n    }\n    \n    function updatePlotSingle(data){\n        Plotly.restyle(map, 'x', [[data.x]]);\n\t    Plotly.restyle(map, 'y', [[data.y]]);\n    }\n    \n    function updatePlotBatch(data){\n        if(data.x != x[x.length-1] && data.y != y[y.length-1]){\n            x.push(data.x)\n            y.push(data.y)\n        }\n        if(x.length >= 10){\n          x.splice(0,1);  \n          y.splice(0,1);  \n        }\n        \n        Plotly.restyle(map, 'x', [x]);\n\t    Plotly.restyle(map, 'y', [y]);\n    }\n\n\t\n\n    setInterval(function(){update();},2);\n\t\n\t\n\t\n\t\n</script>\n</body>",
         "output": "str",
         "x": 883,
         "y": 814.5,

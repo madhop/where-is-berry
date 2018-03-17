@@ -40,8 +40,8 @@ class Localization:
     #Trilateration
     def trilateration(self, data):
         print 'TRILATERATION'
-        A = np.empty((0,2))
-        b = np.empty((0,1))
+        A = np.empty((0,2), dtype=float)
+        b = np.empty((0,1), dtype=float)
         _id = self.get_id(data[-1])      #get _id of the last measure
         last_anchor = self.beacons[_id]  #get last anchor
         last_dist = data[-1]['dist']

@@ -94,5 +94,5 @@ class Localization:
                 measures_batch.append(data)
         print 'measures_batch: ', len(measures_batch)
         location = self.trilateration(measures_batch)
-        location = {'x' : random.uniform(0.0, 5.0), 'y' : random.uniform(0.0, 5.0), 'z' : random.uniform(0.0, 5.0)}
+        #location = {'x' : random.uniform(0.0, 5.0), 'y' : random.uniform(0.0, 5.0), 'z' : random.uniform(0.0, 5.0)}
         return location

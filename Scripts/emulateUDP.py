@@ -16,7 +16,7 @@ for d in data:
 
 print "Sending to udp..."
 
-udp = udpy.UDP_DAO("localhost",12346)
+udp = udpy.UDP_DAO("localhost",12347)
 
 while True:
     for d in data:

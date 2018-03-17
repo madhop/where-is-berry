@@ -39,7 +39,7 @@ class Localization:
 
     #Trilateration
     def trilateration(self, data):
-        print 'TRILATERATION'
+        #print 'TRILATERATION'
         A = np.empty((0,2), dtype=float)
         b = np.empty((0,1), dtype=float)
         _id = self.get_id(data[-1])      #get _id of the last measure
@@ -61,23 +61,25 @@ class Localization:
         ts_milli = time.time() * 1000
         data = self.getData()
         _id = self.get_id(data)
-        if self.beacons.has_key(_id):
-            dist = round(10.0 ** (( self.TxPower - data['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and beacon
-            data['dist'] = dist #add to the data dictionary the distance
-            meas = b.Measure(data['rssi'], dist, data['timestamp'])
-            self.beacons[_id].measures.append(meas)  #store measurement in the beacon class
-            measures_batch.append(data)
-            while (data['timestamp'] - ts_milli) < self.data_interval or self.count_n_diff_anchors(measures_batch) < self.min_diff_anchors:
-                data = self.getData()
-                _id = self.get_id(data)
-                if self.beacons.has_key(_id):
-                    dist = round(10.0 ** (( self.TxPower - data['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and beacon
-                    data['dist'] = dist #add to the data dictionary the distance
-                    meas = b.Measure(data['rssi'], dist, data['timestamp'])
-                    self.beacons[_id].measures.append(meas)  #store measurement in the beacon class
-                    measures_batch.append(data)
-                    print  'minor: ' + str(data['minor']) + ' - rssi: ' + str(data['rssi']) + ' - time: ' + str(data['timestamp']) + ' - dist: ' + str(dist)
-            print 'measures_batch: ', len(measures_batch)
-            location = self.trilateration(measures_batch)
-            #location = {'x' : random.uniform(0.0, 5.0), 'y' : random.uniform(0.0, 5.0), 'z' : random.uniform(0.0, 5.0)}
-            return location
+        while not self.beacons.has_key(_id):
+            ts_milli = time.time() * 1000
+            data = self.getData()
+            _id = self.get_id(data)
+        dist = round(10.0 ** (( self.TxPower - data['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and beacon
+        data['dist'] = dist #add to the data dictionary the distance
+        meas = b.Measure(data['rssi'], dist, data['timestamp'])
+        self.beacons[_id].measures.append(meas)  #store measurement in the beacon class
+        measures_batch.append(data)
+        while (data['timestamp'] - ts_milli) < self.data_interval or self.count_n_diff_anchors(measures_batch) < self.min_diff_anchors:
+            data = self.getData()
+            _id = self.get_id(data)
+            if self.beacons.has_key(_id):
+                dist = round(10.0 ** (( self.TxPower - data['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and beacon
+                data['dist'] = dist #add to the data dictionary the distance
+                meas = b.Measure(data['rssi'], dist, data['timestamp'])
+                self.beacons[_id].measures.append(meas)  #store measurement in the beacon class
+                measures_batch.append(data)
+        print 'measures_batch: ', len(measures_batch)
+        location = self.trilateration(measures_batch)
+        #location = {'x' : random.uniform(0.0, 5.0), 'y' : random.uniform(0.0, 5.0), 'z' : random.uniform(0.0, 5.0)}
+        return location

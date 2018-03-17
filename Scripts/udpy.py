@@ -12,6 +12,6 @@ class UDP_DAO:
         return data
 
     def writeData(self,message):
-        MESSAGE = message
+        MESSAGE = str(message)
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
         sock.sendto(MESSAGE, (self.UDP_IP, self.UDP_PORT))

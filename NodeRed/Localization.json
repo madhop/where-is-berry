@@ -1,15 +1,15 @@
 [
     {
-        "id": "20be477.96922b8",
+        "id": "325c5b48.f6846c",
         "type": "tab",
         "label": "Localization",
         "disabled": false,
         "info": ""
     },
     {
-        "id": "f93d3347.6905e8",
+        "id": "b1863312.1252a8",
         "type": "scanBeacon",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
         "beacon_uuid": "",
         "beacon_major": "",
@@ -18,15 +18,15 @@
         "y": 410.77386474609375,
         "wires": [
             [
-                "ecb68762.57ad38",
-                "59d1c34e.30955c"
+                "1e8f8f41.4c3981",
+                "781e71cd.e855b"
             ]
         ]
     },
     {
-        "id": "f7929b7a.fb6828",
+        "id": "ce4afde8.b9a07",
         "type": "udp out",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
         "addr": "localhost",
         "iface": "",
@@ -40,9 +40,9 @@
         "wires": []
     },
     {
-        "id": "e15ef84.d435f88",
+        "id": "b5b64a05.90da8",
         "type": "debug",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
         "active": false,
         "tosidebar": true,
@@ -54,9 +54,9 @@
         "wires": []
     },
     {
-        "id": "b5db1110.86d83",
+        "id": "e8d1a121.2d5348",
         "type": "json",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
         "property": "payload",
         "action": "",
@@ -65,14 +65,14 @@
         "y": 623.1666259765625,
         "wires": [
             [
-                "e15ef84.d435f88"
+                "b5b64a05.90da8"
             ]
         ]
     },
     {
-        "id": "ecb68762.57ad38",
+        "id": "1e8f8f41.4c3981",
         "type": "function",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Add Timestamp and Filter",
         "func": "var pay = JSON.parse(msg.payload)\nvar ts = new Date().getTime()\npay.timestamp = ts\nmsg.payload = JSON.stringify(pay)\n\nvar last_meas = context.global.get('last_measure')\nif(pay.uuid != last_meas.uuid || pay.major != last_meas.major || pay.minor != last_meas.minor || (ts - last_meas.timestamp) >= 10 ){\n    msg.check = 1\n}else{\n    msg.check = 0\n}\nreturn msg;",
         "outputs": 1,
@@ -81,14 +81,14 @@
         "y": 396.9166259765625,
         "wires": [
             [
-                "dffc7321.af0158"
+                "a7d03488.d6a46"
             ]
         ]
     },
     {
-        "id": "dffc7321.af0158",
+        "id": "a7d03488.d6a46",
         "type": "switch",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Check",
         "property": "check",
         "propertyType": "msg",
@@ -106,14 +106,14 @@
         "y": 534.4163818359375,
         "wires": [
             [
-                "c52eb0df.1702a8"
+                "693afa93.a0a82c"
             ]
         ]
     },
     {
-        "id": "c52eb0df.1702a8",
+        "id": "693afa93.a0a82c",
         "type": "function",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Update last_measure",
         "func": "context.global.set('last_measure', JSON.parse(msg.payload))\nreturn msg;",
         "outputs": 1,
@@ -122,15 +122,15 @@
         "y": 547.1666259765625,
         "wires": [
             [
-                "f7929b7a.fb6828",
-                "b5db1110.86d83"
+                "ce4afde8.b9a07",
+                "e8d1a121.2d5348"
             ]
         ]
     },
     {
-        "id": "b53939d2.d8e158",
+        "id": "4aedc9c8.cc4da",
         "type": "http in",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
         "url": "/where-is-berry/localization",
         "method": "get",
@@ -140,14 +140,14 @@
         "y": 817,
         "wires": [
             [
-                "8331873c.0993c8"
+                "827639c9.ade8c8"
             ]
         ]
     },
     {
-        "id": "81a7690a.bcf9c",
+        "id": "2c03280c.0a7e4",
         "type": "http response",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Http Response",
         "statusCode": "",
         "headers": {},
@@ -156,9 +156,9 @@
         "wires": []
     },
     {
-        "id": "e693d8e1.d89eb8",
+        "id": "448a156.c03c8ec",
         "type": "udp in",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
         "iface": "",
         "port": "12347",
@@ -170,30 +170,30 @@
         "y": 737,
         "wires": [
             [
-                "da31e881.301e28"
+                "dafec9ec.a94008"
             ]
         ]
     },
     {
-        "id": "da31e881.301e28",
+        "id": "dafec9ec.a94008",
         "type": "function",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Store Location",
-        "func": "function replaceAll(str, source, target) {\n  return str.split(source).join(target);\n}\ndata = msg.payload\ndata = replaceAll(data, \"\\'\", \"\\\"\")\ndata = JSON.parse(data)\ncontext.global.set(\"location\",data)\nmsg.payload = data\nreturn msg;",
+        "func": "function replaceAll(str, source, target) {\n  return str.split(source).join(target);\n}\ndata = msg.payload\n    data = replaceAll(data, \"\\'\", \"\\\"\")\n    data = JSON.parse(data)\n    context.global.set(\"location\",data)\n    msg.payload = data\n    return msg;",
         "outputs": 1,
         "noerr": 0,
         "x": 540,
         "y": 737,
         "wires": [
             [
-                "6ba0a924.440398"
+                "b06fe754.edf44"
             ]
         ]
     },
     {
-        "id": "8331873c.0993c8",
+        "id": "827639c9.ade8c8",
         "type": "function",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Get Location",
         "func": "msg.payload = context.global.get(\"location\")\nreturn msg;",
         "outputs": 1,
@@ -202,16 +202,16 @@
         "y": 817,
         "wires": [
             [
-                "27a8ed6f.1fb2c2"
+                "ceca6d03.ad75b"
             ]
         ]
     },
     {
-        "id": "6ba0a924.440398",
+        "id": "b06fe754.edf44",
         "type": "debug",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
-        "active": false,
+        "active": true,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
@@ -221,9 +221,9 @@
         "wires": []
     },
     {
-        "id": "51674264.bee544",
+        "id": "eb3615e8.93574",
         "type": "inject",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Start Beacon",
         "topic": "",
         "payload": "true",
@@ -236,14 +236,14 @@
         "y": 464.5,
         "wires": [
             [
-                "f93d3347.6905e8"
+                "b1863312.1252a8"
             ]
         ]
     },
     {
-        "id": "451c94b8.28a4e4",
+        "id": "c8df1dca.803818",
         "type": "inject",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Stop Beacon",
         "topic": "",
         "payload": "false",
@@ -256,61 +256,61 @@
         "y": 579.2858276367188,
         "wires": [
             [
-                "f93d3347.6905e8"
+                "b1863312.1252a8"
             ]
         ]
     },
     {
-        "id": "59d1c34e.30955c",
+        "id": "781e71cd.e855b",
         "type": "debug",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
         "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
         "complete": "false",
-        "x": 828.7499999999998,
-        "y": 239.99999999999991,
+        "x": 822.75,
+        "y": 244,
         "wires": []
     },
     {
-        "id": "3c5ea60c.a13c0a",
+        "id": "dcde606a.eabdd8",
         "type": "function",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Initialize State",
         "func": "if (context.global.get(\"state\") === undefined){\n    context.global.set(\"state\",\"stopped\")\n}\nif (context.global.get(\"last_measure\") === undefined){\n    context.global.set(\"last_measure\", {'timestamp' : 0, 'uuid' : \"\", 'major' : undefined, 'minor' : undefined})\n}\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
         "x": 493,
-        "y": 225,
+        "y": 236,
         "wires": [
             []
         ]
     },
     {
-        "id": "27a8ed6f.1fb2c2",
+        "id": "ceca6d03.ad75b",
         "type": "template",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Build response",
         "field": "payload",
         "fieldType": "msg",
         "format": "handlebars",
         "syntax": "mustache",
-        "template": "<head>\n    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n    <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>\n    <!--<script src=\"/home/luca/where-is-berry/NodeRed/lib/plotly-latest.min.js\"></script>-->\n</head>\n<body>\n<div id=\"map\" style=\"width:600px;height:250px;\"></div>\n<script>\n\tvar map = document.getElementById('map');\n \n   \n    var pos = {\n        x: [],\n        y: [],\n        type: 'scatter'\n    };\n \n    var map_data = [pos];\n    \n    var layout = {\n        title:'Map'\n    };\n \n    Plotly.newPlot(map, map_data,layout );\n    \n    function update(){\n        $.getJSON( \"http://localhost:1880/where-is-berry/getLocation\", function(response){updatePlot(response)});\n    }\n    \n    function updatePlot(data){\n        Plotly.restyle(map, 'x', [[data.x]]);\n\t    Plotly.restyle(map, 'y', [[data.y]]);\n    }\n\t \n\tupdate()\n\t\n</script>\n</body>",
+        "template": "<head>\n    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n    <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>\n    <!--<script src=\"/home/luca/where-is-berry/NodeRed/lib/plotly-latest.min.js\"></script>-->\n</head>\n<body>\n<div id=\"map\" style=\"width:600px;height:250px;\"></div>\n<script>\n\tvar map = document.getElementById('map');\n \n   \n    var pos = {\n        x: [],\n        y: [],\n        type: 'scatter'\n    };\n    \n    pos_data = {\n        x : [],\n        y : [],\n        z : []\n    };\n    x = [];\n    y = [];\n    z = [];\n \n    var map_data = [pos];\n    \n    var layout = {\n        autosize: false,\n        width: 500,\n        height: 500,\n        xaxis: {range: [0, 5]},\n        yaxis: {range: [5, 0]}\n        \n    };\n \n    Plotly.newPlot(map, map_data,layout );\n    \n    function update(){\n        $.getJSON( \"http://localhost:1880/where-is-berry/getLocation\", function(response){updatePlotBatch(response)});\n    }\n    \n    function updatePlotSingle(data){\n        Plotly.restyle(map, 'x', [[data.x]]);\n\t    Plotly.restyle(map, 'y', [[data.y]]);\n    }\n    \n    function updatePlotBatch(data){\n        if(data.x != x[x.length-1] && data.y != y[y.length-1]){\n            x.push(data.x)\n            y.push(data.y)\n        }\n        if(x.length >= 10){\n          x.splice(0,1);  \n          y.splice(0,1);  \n        }\n        \n        Plotly.restyle(map, 'x', [x]);\n\t    Plotly.restyle(map, 'y', [y]);\n    }\n\n\t\n\n    setInterval(function(){update();},2);\n\t\n\t\n\t\n\t\n</script>\n</body>",
         "output": "str",
         "x": 883,
         "y": 814.5,
         "wires": [
             [
-                "81a7690a.bcf9c"
+                "2c03280c.0a7e4"
             ]
         ]
     },
     {
-        "id": "d2aac584.1e92d8",
+        "id": "c9e54ae9.207a38",
         "type": "inject",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Autostart",
         "topic": "",
         "payload": "true",
@@ -323,15 +323,15 @@
         "y": 308.5,
         "wires": [
             [
-                "3c5ea60c.a13c0a",
-                "f93d3347.6905e8"
+                "dcde606a.eabdd8",
+                "b1863312.1252a8"
             ]
         ]
     },
     {
-        "id": "66ed4841.16c4e",
+        "id": "863fcc5b.261318",
         "type": "http in",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
         "url": "/where-is-berry/getLocation",
         "method": "get",
@@ -341,14 +341,14 @@
         "y": 886,
         "wires": [
             [
-                "4928b1d7.f6fc5"
+                "5a1ccccc.e9e92c"
             ]
         ]
     },
     {
-        "id": "4928b1d7.f6fc5",
+        "id": "5a1ccccc.e9e92c",
         "type": "function",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Get Location",
         "func": "msg.payload = context.global.get(\"location\")\nreturn msg;",
         "outputs": 1,
@@ -357,15 +357,15 @@
         "y": 888,
         "wires": [
             [
-                "a0ae3a72.373f68",
-                "9874bd52.303768"
+                "ff6bd0cb.66921",
+                "3d749e6a.989232"
             ]
         ]
     },
     {
-        "id": "a0ae3a72.373f68",
+        "id": "ff6bd0cb.66921",
         "type": "http response",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "Http Response",
         "statusCode": "",
         "headers": {},
@@ -374,17 +374,17 @@
         "wires": []
     },
     {
-        "id": "9874bd52.303768",
+        "id": "3d749e6a.989232",
         "type": "debug",
-        "z": "20be477.96922b8",
+        "z": "325c5b48.f6846c",
         "name": "",
-        "active": true,
+        "active": false,
         "tosidebar": true,
         "console": false,
         "tostatus": false,
         "complete": "false",
-        "x": 1027,
-        "y": 995,
+        "x": 1009,
+        "y": 1002,
         "wires": []
     }
 ]

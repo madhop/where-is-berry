@@ -7,8 +7,9 @@ class Kalman:
         #P(k-1|k-1)
         self.last_P_posteriori = P0
         self.state_dim = x0.size
-        self.estimates_history = []
+        self.estimates_history = [[] for i in range(1,history_length)]
         self.last_time = []
+        self.history_length = history_length
 
     #z(k) - measurement vector
     #u(k) - control input vector
@@ -30,4 +31,10 @@ class Kalman:
         return x_posteriori
 
     def updateHistory(self, H, z, x_posteriori):
-        
+        indices = np.where(H.sum(axis = 1) > 0)[0]  # retrieve indices of row with a 1
+        #for each of them update the history of etimated distances
+        for i in indices:
+            self.estimates_history[i].append(x_posteriori[2*i])
+            #if there are enough value, remove oldest
+            if len(self.estimates_history[i]) > self.history_length:
+                self.estimates_history[i].pop(0)

@@ -16,17 +16,27 @@ import measure
 class WhereIsBerry:
     def __init__(self):
         self.localization = localization.Localization()
-        self.kalman = kalman.Kalman()
-        self.dao = DAO.UDP_DAO("localhost", 12346)
+        #anchors
         anc = ac.getAnchors()
         self.anchors = anc['anchors']
         self.anchors_ids = anc['anchors_ids']
+        self.anchor_id_keys = anc['idKeys']
+        #kalman
+        self.history_length = 5
+        n = len(self.anchors)
+        x0 = np.zeros((n*2,1))
+        P0 = np.ones((2*n,2*n))#np.diag([1]*(2*n))
+        self.kalman = kalman.Kalman(x0, P0, self.history_length)
+        #udp
+        self.dao = DAO.UDP_DAO("localhost", 12346)
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 1#math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.min_diff_anchors = 4#math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         self.alpha = 0.9722921
         self.TxPower = -66.42379
         self.decimal_approximation = 3
+        #batch of measures
+        self.dist_history = []
 
 
     def getData(self):
@@ -43,9 +53,9 @@ class WhereIsBerry:
     #construct key
     def get_id(self, data):
         _id = ''
-        for i in self.anchors['idKeys'][:-1]:
+        for i in self.anchor_id_keys[:-1]:
             _id += str(data[i]) + ':'
-        _id += str(data[self.anchors['idKeys'][-1]])
+        _id += str(data[self.anchor_id_keys[-1]])
         return _id
 
     def getMeasures(self):
@@ -75,38 +85,50 @@ class WhereIsBerry:
 
         if filtered:
             print 'FILTRO'
-            n = len(self.anchors)
-            x0 = np.zeros((n*2,1))
-            P0 = np.diag(2*n)#np.zeros((2*n,2*n))
-            kalman = kalman.Kalman(x0, P0)
-            delta_t = []
-            #F(k) - state transition model
-            F = np.zeros((2*n,2*n))
-            for i in range(1,2*n,2):
-                F[i-1][i-1] = 1
-                F[i-1][i] = delta_t
-                F[i][i] = 1
+            filtered_measures = {}
+            for m in measures:
+                n = len(self.anchors)
+                delta_t = [1]*(2*n)
+                print 'delta_t:', delta_t
+                #F(k) - state transition model
+                F = np.zeros((2*n,2*n))
+                for i in range(1,2*n,2):
+                    F[i-1][i-1] = 1
+                    F[i-1][i] = delta_t[i]
+                    F[i][i] = 1
+                print 'F', F
 
-            #H(k) - observation model
-            #il batch deve essere 1, se non e' 1, bisogna decidere cosa fare (media, o solo il primo ecc.)
-            H = np.zeros((n,2*n))
-            index = self.anchors_ids.index(self.get_id(measures[0]))
-            H[index][(2*index)] = 1
+                #H(k) - observation model
+                H = np.zeros((n,2*n))
+                index = self.anchors_ids.index(self.get_id(m))
+                H[index][(2*index)] = 1
+                print 'H', H
 
-            #Q(k) - process noise covarinace matrix
-            Q = np.zeros((2*n,2*n))
-            for i in range(1,2*n,2):
-                Q[i-1][i-1] = 1
-                Q[i-1][i] = 1
-                Q[i][i] = 1
+                #Q(k) - process noise covarinace matrix
+                Q = np.zeros((2*n,2*n))
+                for i in range(1,2*n,2):
+                    Q[i-1][i-1] = 1
+                    Q[i-1][i] = 1
+                    Q[i][i] = 1
+                print 'Q', Q
 
-            G = 100 #gain
-            delta_d = np.zeros((n)) #d - history_mean_d
-            #R(k) - measurement noise matrix
-            R = np.zeros((n,n))
-            for i in range(0,n):
-                R[i][i] = delta_d[i] * G
-            measures = kalman.estimate(measures, F, H, Q, G, R)
+                G = 100 #gain
+                delta_d = np.zeros((n))
+                z = np.zeros((n,1))
+                z[index] = m['dist']
+                delta_d = z - np.reshape(np.array([self.kalman.historyMean()]), (n,1))
+                print 'delta_d', delta_d
+                #R(k) - measurement noise matrix
+                R = np.diag((delta_d[:,0]*G).tolist())
+                print 'R', R
+                #compute kalman filtering
+                x = self.kalman.estimate(z, F, H, Q, G, R)
+                print 'X FILTRATO', x
+                #replace or append filtered measure to dictionary
+                _id = self.get_id(m)
+                m['dist'] = x[index*2][0]
+                filtered_measures[_id] = m
+            measures = [ filtered_measures[k] for k in filtered_measures ]
 
         location = self.localization.trilateration(measures)
         print 'BERRY E\' QUIIII!!!!!'

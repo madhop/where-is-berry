@@ -16,8 +16,5 @@ for l in input_list:
 
 anchors['idKeys'] = anchors['anchors'].itervalues().next().id.keys()
 
-
-print index
 def getAnchors():
-    print 'there are ', len(anchors['anchors_ids']), 'anchors'
     return anchors

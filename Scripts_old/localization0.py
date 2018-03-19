@@ -7,19 +7,20 @@ from decimal import Decimal
 import random
 import anchor as a
 import anchors_config as bc
+import kalman
 
 class Localization:
     def __init__(self):
-        self.udp_address = '127.0.0.1'
-        self.udp_port = 12346
-        self.data_interval = 1000
-        self.min_diff_anchors_ratio = 0.75
-        self.alpha = 0.9722921
-        self.TxPower = -66.42379
-        self.udp_dao = udpy.UDP_DAO(self.udp_address, self.udp_port)
-        self.anchors = bc.getAnchors()
+        '''self.udp_address = '127.0.0.1'
+        self.udp_port = 12346'''
+        '''self.data_interval = 1000
         self.min_diff_anchors = math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
-        self.decimal_approximation = 3
+        self.min_diff_anchors_ratio = 0.75'''
+        '''self.alpha = 0.9722921
+        self.TxPower = -66.42379
+        self.decimal_approximation = 3'''
+        #self.udp_dao = udpy.UDP_DAO(self.udp_address, self.udp_port)
+        #self.anchors = bc.getAnchors()
 
 
     #count how many different anchors have sent the signal
@@ -69,7 +70,7 @@ class Localization:
         print pos
         return pos
 
-    def getLocation(self):
+    def getMeasures(self):
         measures_batch = []
         ts_milli = time.time() * 1000
         data = self.getData()
@@ -94,5 +95,23 @@ class Localization:
                 measures_batch.append(data)
         print 'measures_batch: ', len(measures_batch)
         location = self.trilateration(measures_batch)
-        location = {'x' : random.uniform(0.0, 5.0), 'y' : random.uniform(0.0, 5.0), 'z' : random.uniform(0.0, 5.0)}
+        #location = {'x' : random.uniform(0.0, 5.0), 'y' : random.uniform(0.0, 5.0), 'z' : random.uniform(0.0, 5.0)}
         return location
+
+        def getLocation(self, filtered = True):
+            measures = self.getMeasures()
+            if filtered:
+                x0 =
+                P0 =
+                kalman = kalman.Kalman(x0, P0)
+                delta_t = []
+                #F(k) - state transition model
+                F = np.zeros((2*n,2*n))
+                for i in range(1,2*n,2):
+                    F[i-1][i-1] = 1
+                    F[i-1][i] = delta_t
+                    F[i][i] = 1
+                measures = kalman.estimate(measures, F, H, Q, G, R)
+
+            location = self.trilateration(measures)
+            return location

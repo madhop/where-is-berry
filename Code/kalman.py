@@ -25,9 +25,9 @@ class Kalman:
         #MEASUREMENT STEP
         y = z - H.dot(x_priori)    #y(k) - error vector
         S = H.dot(P_priori).dot(H.T) + R    #S(k) - innovation matrix
-        print 'S', S
+        #print 'S', S
         #UPDATE STATE
-        K = P_priori.dot(H.T).dot(np.linalg.pinv(S))#K = P_priori.dot(H.T).dot(inv(S))   #K(k) - Kalman gain
+        K = P_priori.dot(H.T).dot(inv(S))#K = P_priori.dot(H.T).dot(inv(S))   #K(k) - Kalman gain
         x_posteriori = x_priori + K.dot(y)  #x(k|k)
         P_posteriori = (np.eye(self.n*2) - K.dot(H)).dot(P_priori) #P(k|k)
         self.last_x_posteriori = x_posteriori
@@ -36,7 +36,8 @@ class Kalman:
         return x_posteriori
 
     def updateHistory(self, H, z, x_posteriori):
-        indices = np.where(H.sum(axis = 1) > 0)[0]  # retrieve indices of row of H with a 1
+        indices = np.where(H.sum(axis = 0) > 0)[0]/2  # retrieve indices of columns of H with a 1
+        print 'indices', indices
         #for each of them update the history of etimated distances
         for i in indices:
             self.estimates_history[i].append(x_posteriori[2*i][0])

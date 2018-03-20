@@ -1,6 +1,13 @@
-import where_is_berry
+#import where_is_berry as wib
+import where_is_berry as wib
+import DAO
 
-berry = where_is_berry.WhereIsBerry()
+dao = DAO.UDP_DAO("localhost", 12347)
+
+berry = wib.WhereIsBerry()
 
 while True:
-    print berry.whereIsBerry(False)
+    location = berry.whereIsBerry(True)
+    #print "*******BERRY:", location
+    dao.writeData(location)
+    #dao.writeData()

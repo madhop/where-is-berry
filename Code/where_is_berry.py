@@ -11,7 +11,6 @@ import kalman
 import DAO
 import ast
 import measure
-import pprint
 import time
 
 class WhereIsBerry:
@@ -23,7 +22,7 @@ class WhereIsBerry:
         self.anchors_ids = anc['anchors_ids']
         self.anchor_id_keys = anc['idKeys']
         #kalman
-        self.history_length = 5
+        self.history_length = 100
         n = len(self.anchors)
         x0 = np.zeros((n*2,1))
         P0 = np.ones((2*n,2*n))#np.diag([1]*(2*n))
@@ -35,8 +34,8 @@ class WhereIsBerry:
         self.dao = DAO.UDP_DAO("localhost", 12346)
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 3 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
-        self.alpha = 0.9722921
+        self.min_diff_anchors = 4 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.alpha = 1 #0.9722921
         self.TxPower = -66.42379
         self.decimal_approximation = 3
 
@@ -106,6 +105,7 @@ class WhereIsBerry:
         #measures.append(self.getDistanceFromRSSI(meas))
         #measures.append(self.getDistanceFromFingerprinting(meas))
 
+        unfiltered = measures
 
         if filtered:
             print 'FILTRO'
@@ -115,7 +115,7 @@ class WhereIsBerry:
             batch_size = len(measures)
 
             ######F(k) - state transition model (static)
-            now = time.time()/1000
+            now = time.time()
             if(self.last_time == None):
                 self.last_time = now
             delta_t = [now - self.last_time]*(2*n)
@@ -160,7 +160,8 @@ class WhereIsBerry:
             G = 100 ######gain
             row_n = 0
             for m in measures:
-                delta_d_times_G.append((z[row_n][0] -  self.historyMean()[index])*G)
+                #delta_d_times_G.append((z[row_n][0] -  self.historyMean()[index])*G)
+                delta_d_times_G.append(1)
                 row_n += 1
             print 'delta_d * G', delta_d_times_G
             R = np.diag((delta_d_times_G))
@@ -178,15 +179,23 @@ class WhereIsBerry:
                 filtered_measures[_id] = m
             measures = [ filtered_measures[k] for k in filtered_measures ]
 
-        self.updateHistory(measures)
-        #self.updateTimes(measures)
-        self.last_time = now
+            self.updateHistory(measures)
+            #self.updateTimes(measures)
+            self.last_time = now
 
         #print "Filtered:", measures
+        print "unfiltered"
+        for u in unfiltered:
+            dist = round(10.0 ** (( self.TxPower - u['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
+            print dist
 
+        print "filtered"
         for m in measures:
             dist = round(10.0 ** (( self.TxPower - m['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
             m['dist'] = dist
+            print 'dist', dist
+
+
 
 
         location = self.localization.trilateration(measures)

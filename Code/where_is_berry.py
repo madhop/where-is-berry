@@ -24,8 +24,8 @@ class WhereIsBerry:
         #kalman
         self.history_length = 100
         n = len(self.anchors)
-        x0 = np.zeros((n*2,1))
-        P0 = np.ones((2*n,2*n))#np.diag([1]*(2*n))
+        x0 = np.array([[0.4],[0]])#np.zeros((n*2,1))
+        P0 = np.diag([100]*(2*n))#np.zeros((2*n,2*n))
         self.kalman = kalman.Kalman(x0, P0)
         self.estimates_history = [[] for i in range(0,(len(self.anchors)))]   #inizialization as list of empty lists (as many lists as the number of anchors)
         self.last_times = np.zeros((n,1))
@@ -34,7 +34,7 @@ class WhereIsBerry:
         self.dao = DAO.UDP_DAO("localhost", 12346)
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 4 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.min_diff_anchors = 1 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         self.alpha = 1 #0.9722921
         self.TxPower = -66.42379
         self.decimal_approximation = 3
@@ -98,6 +98,7 @@ class WhereIsBerry:
 
     def whereIsBerry(self, filtered):
         measures = self.getMeasures()
+        print 'minors:', [m['minor'] for m in measures]
         #print "Unfiltered:", measures
         #print "Batch:", len(measures)
         #meas = self.getMeasures()
@@ -106,6 +107,8 @@ class WhereIsBerry:
         #measures.append(self.getDistanceFromFingerprinting(meas))
 
         unfiltered = measures
+        for u in unfiltered:
+            u['dist'] = round(10.0 ** (( self.TxPower - u['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
 
         if filtered:
             print 'FILTRO'
@@ -122,13 +125,13 @@ class WhereIsBerry:
             for m in measures:
                 index = self.anchors_ids.index(self.get_id(m))
                 #delta_t.append((m['timestamp'] - self.last_time[index][0])/1000)
-            print 'delta_t:', delta_t
+            #print 'delta_t:', delta_t
             F = np.zeros((2*n,2*n))
             for i in range(1,2*n,2):
                 F[i-1][i-1] = 1
                 F[i-1][i] = delta_t[i]
                 F[i][i] = 1
-            print 'F', F
+            #print 'F', F
 
             ######H(k) - observation model (dynamic)
             H = np.zeros((batch_size,2*n))
@@ -137,15 +140,15 @@ class WhereIsBerry:
                 index = self.anchors_ids.index(self.get_id(m))
                 H[row_n][(2*index)] = 1
                 row_n += 1
-            print 'H', H
+            #print 'H', H
 
             ######Q(k) - process noise covarinace matrix (static)
             Q = np.zeros((2*n,2*n))
             for i in range(1,2*n,2):
-                Q[i-1][i-1] = 1
-                Q[i-1][i] = 1
-                Q[i][i] = 1
-            #print 'Q', Q
+                Q[i-1][i-1] = 0.001
+                #Q[i-1][i] = 0.001
+                Q[i][i] = 0.001
+            print 'Q', Q
 
             ######z(k) - measurement vector (dynamic)
             z = np.empty((batch_size,1))
@@ -153,23 +156,25 @@ class WhereIsBerry:
             for m in measures:
                 z[row_n] = m['rssi']
                 row_n += 1
-            print 'z', z
+            #print 'z', z
 
             ######R(k) - measurement noise matrix (dynamic)
             delta_d_times_G = []
             G = 100 ######gain
             row_n = 0
             for m in measures:
-                #delta_d_times_G.append((z[row_n][0] -  self.historyMean()[index])*G)
-                delta_d_times_G.append(1)
+                #_id = self.get_id(m)
+                #index = self.anchors_ids.index(_id)
+                #1delta_d_times_G.append((z[row_n][0] -  self.historyMean()[index])*G)
+                delta_d_times_G.append(0.1)
                 row_n += 1
-            print 'delta_d * G', delta_d_times_G
+            #print 'delta_d * G', delta_d_times_G
             R = np.diag((delta_d_times_G))
-            print 'R', R
+            #print 'R', R
 
             #compute kalman filtering
             x = self.kalman.estimate(z, F, H, Q, G, R)
-            print 'X FILTRATO', x
+            #print 'X FILTRATO', x
 
             #replace or append filtered measure to dictionary
             for m in measures:
@@ -184,21 +189,29 @@ class WhereIsBerry:
             self.last_time = now
 
         #print "Filtered:", measures
+        a = {}
         print "unfiltered"
         for u in unfiltered:
-            dist = round(10.0 ** (( self.TxPower - u['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
-            print dist
+            print u['dist']
+            if u['dist'] < 1000: #TODO remove this if else
+                a['unfiltered'] = u['dist']
+            else:
+                a['unfiltered'] = 0
 
         print "filtered"
         for m in measures:
             dist = round(10.0 ** (( self.TxPower - m['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
             m['dist'] = dist
-            print 'dist', dist
+            print dist
+            if m['dist'] < 1000: #TODO remove this if else
+                a['filtered'] = m['dist']
+            else:
+                a['filtered'] = 0
 
 
 
 
-        location = self.localization.trilateration(measures)
+        #location = self.localization.trilateration(measures)
         #print 'BERRY E\' QUIIII!!!!!'
-        print location
-        return location
+        #print location
+        return a#location

@@ -20,7 +20,7 @@ class Localization:
 
     #Trilateration
     def trilateration(self, data):
-        print 'data', data
+        #print 'data', data
         print 'TRILATERATION'
         _id = self.get_id(data[-1])      #get _id of the last measure
         last_anchor = self.anchors[_id]  #get last anchor

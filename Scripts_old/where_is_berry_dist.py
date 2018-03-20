@@ -140,4 +140,5 @@ class WhereIsBerry:
 
         location = self.localization.trilateration(measures)
         print 'BERRY E\' QUIIII!!!!!'
+        print location
         return location

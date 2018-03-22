@@ -49,8 +49,8 @@
         "console": false,
         "tostatus": false,
         "complete": "false",
-        "x": 919.958251953125,
-        "y": 506.4166259765625,
+        "x": 918.2916259765625,
+        "y": 513.0832824707031,
         "wires": []
     },
     {
@@ -225,8 +225,8 @@
         "method": "get",
         "upload": false,
         "swaggerDoc": "",
-        "x": 252.66668701171875,
-        "y": 897.3333129882812,
+        "x": 256.66668701171875,
+        "y": 1001.3333129882812,
         "wires": [
             [
                 "f1405bbd.08a97"
@@ -241,8 +241,8 @@
         "func": "msg.payload = context.global.get(\"location\")\nreturn msg;",
         "outputs": 1,
         "noerr": 0,
-        "x": 503,
-        "y": 898,
+        "x": 507,
+        "y": 1002,
         "wires": [
             [
                 "2c5d8e20.a370b2",
@@ -257,8 +257,8 @@
         "name": "Http Response",
         "statusCode": "",
         "headers": {},
-        "x": 819,
-        "y": 898,
+        "x": 823,
+        "y": 1002,
         "wires": []
     },
     {
@@ -271,73 +271,9 @@
         "console": false,
         "tostatus": false,
         "complete": "false",
-        "x": 817,
-        "y": 966,
+        "x": 821,
+        "y": 1070,
         "wires": []
-    },
-    {
-        "id": "c45a790d.2eb9b8",
-        "type": "http in",
-        "z": "ee9e3256.bc4d1",
-        "name": "",
-        "url": "/where-is-berry/distance",
-        "method": "get",
-        "upload": false,
-        "swaggerDoc": "",
-        "x": 242.66665649414062,
-        "y": 819.6665649414062,
-        "wires": [
-            [
-                "da404a46.9cbc9",
-                "fe1d3e3d.50afe8"
-            ]
-        ]
-    },
-    {
-        "id": "587f0234.ff1b8c",
-        "type": "http response",
-        "z": "ee9e3256.bc4d1",
-        "name": "Http Response",
-        "statusCode": "",
-        "headers": {},
-        "x": 918.3333740234375,
-        "y": 818,
-        "wires": []
-    },
-    {
-        "id": "802906b7.5981f",
-        "type": "template",
-        "z": "ee9e3256.bc4d1",
-        "name": "Build response",
-        "field": "payload",
-        "fieldType": "msg",
-        "format": "handlebars",
-        "syntax": "mustache",
-        "template": "<head>\n    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n    <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>\n    <!--<script src=\"/home/luca/where-is-berry/NodeRed/lib/plotly-latest.min.js\"></script>-->\n</head>\n<body>\n<div id=\"distance_plot\" style=\"width:600px;height:250px;\"></div>\n<script>\n\tvar distance_plot = document.getElementById('distance_plot');\n    \n    timestamp = [];\n    filtered_data = [];\n    unfiltered_data = [];\n    var filtered = {\n                x: timestamp, \n                y: filtered_data,\n                name : 'filtered'\n            }\n    \n    var unfiltered = {\n                x : timestamp,\n                y: unfiltered_data,\n                name : 'unfiltered'\n            }\n    \n    var layout = {\n        autosize : false,\n        heigth : 500,\n        width : 800\n    }\n \n    Plotly.newPlot(distance_plot, [], layout);\n    Plotly.addTraces(distance_plot,[filtered, unfiltered]);\n    \n    function update(){\n        $.getJSON( \"http://{{_host}}/where-is-berry/getLocation\", function(response){updatePlot(response)});\n    }\n    \n    \n    \n    function updatePlot(data){\n        if(data.timestamp != timestamp[timestamp.length-1]){\n            timestamp.push(data.timestamp)\n            filtered_data.push(data.distances.filtered)\n            unfiltered_data.push(data.distances.unfiltered)\n            filtered.y = filtered_data\n            filtered.x = timestamp\n            unfiltered.y = unfiltered_data\n            unfiltered.x = timestamp\n            Plotly.deleteTraces(distance_plot, [0,1]);\n            Plotly.addTraces(distance_plot, [filtered, unfiltered]);\n        }\n    }\n   \n\n    setInterval(function(){update();},200);\n\t\n   \n\t\n\t\n\t\n</script>\n</body>",
-        "output": "str",
-        "x": 705.5,
-        "y": 819.4999389648438,
-        "wires": [
-            [
-                "587f0234.ff1b8c"
-            ]
-        ]
-    },
-    {
-        "id": "fe1d3e3d.50afe8",
-        "type": "function",
-        "z": "ee9e3256.bc4d1",
-        "name": "Set ajax ip",
-        "func": "host = msg.req['headers']['host']\nmsg._host = host\nreturn msg;",
-        "outputs": 1,
-        "noerr": 0,
-        "x": 511.33331298828125,
-        "y": 819.6666870117188,
-        "wires": [
-            [
-                "802906b7.5981f"
-            ]
-        ]
     },
     {
         "id": "ed212b42.30e7f8",
@@ -389,17 +325,66 @@
         "wires": []
     },
     {
-        "id": "da404a46.9cbc9",
-        "type": "debug",
+        "id": "337c7d5e.80158a",
+        "type": "http in",
         "z": "ee9e3256.bc4d1",
         "name": "",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "true",
-        "x": 517,
-        "y": 759,
+        "url": "/where-is-berry/localization",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 252,
+        "y": 904,
+        "wires": [
+            [
+                "2d72c200.a667ce"
+            ]
+        ]
+    },
+    {
+        "id": "2aad2edf.1979e2",
+        "type": "http response",
+        "z": "ee9e3256.bc4d1",
+        "name": "Http Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 917.6667175292969,
+        "y": 902.3334350585938,
         "wires": []
+    },
+    {
+        "id": "c5c680b4.6a4568",
+        "type": "template",
+        "z": "ee9e3256.bc4d1",
+        "name": "Build response",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<head>\n    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n    <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>\n    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" crossorigin=\"anonymous\"></script>\n    <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" integrity=\"sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u\" crossorigin=\"anonymous\">\n    <!--<script src=\"/home/luca/where-is-berry/NodeRed/lib/plotly-latest.min.js\"></script>-->\n</head>\n<body>\n\n<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"form-check form-check-inline\" id=\"beacons\"></div>\n    <div id=\"distance_plot\" style=\"width:600px;height:250px;\"></div>\n  </div>\n</div>\n\n\n<script>\n\n\n  for(i=0; i<10;i++){\n    beacon_n = i+1\n    var append_str = '<input class=\"form-check-input\" type=\"radio\" name=\"beacon\" id=\"'+i+'\">' +\n                      '<label class=\"form-check-label\" for=\"'+i+'\">Beacon '+beacon_n+'</label>'\n    //$('#beacons').append('<div class=\"col\"><input id=\"'+i+'\" name=\"beacon\" type=\"radio\"> Beacon '+beacon_n+'</div>')\n    $('#beacons').append(append_str)\n  }\n\n\tvar distance_plot = document.getElementById('distance_plot');\n\n  var distance_plot_data = {}\n  distance_plot_data[10] = {}\n  distance_plot_data[10]['elapsed_time'] = []\n  distance_plot_data[10]['filtered_data'] = []\n  distance_plot_data[10]['unfiltered_data'] = []\n\n  var filtered_trace = {\n    x : [],\n    y : [],\n    name : 'Beacon 10 filtered'\n  }\n  var unfiltered_trace = {\n    x : [],\n    y : [],\n    name : 'Beacon 10 unfiltered'\n  }\n\n  var layout = {\n      autosize : false,\n      heigth : 500,\n      width : 800\n  }\n\n  Plotly.newPlot(distance_plot, [], layout);\n  Plotly.addTraces(distance_plot,[filtered_trace, unfiltered_trace]);\n\n  function update(){\n      $.getJSON( \"http://{{_host}}/where-is-berry/getLocation\", function(response){updatePlot(response)});\n  }\n\n\n\n  function updatePlot(data){\n    //update distance plot\n    for (i = 0 ; i < data.measures.length; i++){\n      if(data.measures[i]['minor'] == 10 && data.measures[i].elapsed_time != distance_plot_data[10].elapsed_time[distance_plot_data[10].elapsed_time.length-1]){\n          distance_plot_data[10].elapsed_time.push(data.measures[i].elapsed_time)\n          distance_plot_data[10].filtered_data.push(data.estimates.distances.filtered)\n          distance_plot_data[10].unfiltered_data.push(data.estimates.distances.unfiltered)\n          unfiltered_trace.y = distance_plot_data[10].unfiltered_data\n          filtered_trace.y = distance_plot_data[10].filtered_data\n          unfiltered_trace.x = distance_plot_data[10].elapsed_time\n          filtered_trace.x = distance_plot_data[10].elapsed_time\n          Plotly.deleteTraces(distance_plot, [0,1]);\n          Plotly.addTraces(distance_plot,[filtered_trace, unfiltered_trace]);\n      }\n    }\n  }\n\n  //change beacon\n  $(\"#beacons\").click(function(event){\n    console.log(event.target.id);\n  });\n\n  //ajax trigger\n  setInterval(function(){update();},200);\n</script>\n</body>\n",
+        "output": "str",
+        "x": 704.8333435058594,
+        "y": 903.8333740234375,
+        "wires": [
+            [
+                "2aad2edf.1979e2"
+            ]
+        ]
+    },
+    {
+        "id": "2d72c200.a667ce",
+        "type": "function",
+        "z": "ee9e3256.bc4d1",
+        "name": "Set ajax ip",
+        "func": "host = msg.req['headers']['host']\nmsg._host = host\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 510.6666564941406,
+        "y": 904.0001220703125,
+        "wires": [
+            [
+                "c5c680b4.6a4568"
+            ]
+        ]
     }
 ]

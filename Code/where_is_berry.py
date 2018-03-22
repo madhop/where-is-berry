@@ -37,7 +37,7 @@ class WhereIsBerry:
         self.min_diff_anchors_ratio = 0.75
         self.min_diff_anchors = 1 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         self.min_diff_anchors = 0 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
-        self.alpha = 1 #0.9722921
+        self.alpha = 1.9 #0.9722921
         self.TxPower = -66.42379
         self.decimal_approximation = 3
 
@@ -163,23 +163,24 @@ class WhereIsBerry:
             print 'z', z
 
             ######R(k) - measurement noise matrix (dynamic)
-            delta_d_times_G = []
-            G = 1 ######gain
-            row_n = 0
+            meas_noise_var = []
             for m in measures:
                 _id = self.get_id(m)
                 index = self.anchors_ids.index(_id)
-                delta_d_times_G.append((z[row_n][0] -  self.historyMean()[index])*G)
-                #print '############index:', index, 'z - MEAN:',(z[row_n][0] -  self.historyMean()[index])
-                #delta_d_times_G.append(0.1)
-                row_n += 1
-            #print 'delta_d * G', delta_d_times_G
-            R = np.diag((delta_d_times_G))
+                '''if len(self.estimates_history[index]) > 0:
+                    var = np.var(np.array([self.estimates_history[index]]))
+                else:
+                    var = 1'''
+                var = 100
+                meas_noise_var.append(var)
+
+            print 'var', meas_noise_var
+            R = np.diag((meas_noise_var))
             print 'R', R
 
             #compute kalman filtering
-            x = self.kalman.estimate(z, F, H, Q, G, R)
-            #print 'X FILTRATO', x
+            x = self.kalman.estimate(z, F, H, Q, R)
+            print 'X FILTRATO\n', x
 
             #replace or append filtered measure to dictionary
             for m in measures:
@@ -199,10 +200,7 @@ class WhereIsBerry:
         print "unfiltered"
         for u in unfiltered:
             print u['dist']
-            if u['dist'] < 1000: #TODO remove this if else
-                distances['unfiltered'] = u['dist']
-            else:
-                distances['unfiltered'] = 0
+            distances['unfiltered'] = u['dist']
             print 'id:', u['minor'] , 'dist:', u['dist'], 'timestamp:', u['timestamp']
 
         print "filtered"
@@ -210,10 +208,7 @@ class WhereIsBerry:
             dist = round(10.0 ** (( self.TxPower - m['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
             m['dist'] = dist
             print dist
-            if m['dist'] < 1000: #TODO remove this if else
-                distances['filtered'] = m['dist']
-            else:
-                distances['filtered'] = 0
+            distances['filtered'] = m['dist']
             print 'id:', m['minor'], 'dist:', m['dist'], 'timestamp:', m['timestamp']
 
         estimates = {}

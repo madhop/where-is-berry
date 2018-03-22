@@ -13,7 +13,7 @@ class Kalman:
     #u(k) - control input vector
     #B(k) - control input model
     #Q - process noice covariance matrix
-    def estimate(self, z, F, H, Q, G, R, u = 0, B = None):
+    def estimate(self, z, F, H, Q, R, u = 0, B = None):
         if B == None:
             B = np.zeros((self.n*2,1))
         #PREDICTION STEP

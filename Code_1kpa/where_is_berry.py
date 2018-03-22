@@ -16,7 +16,6 @@ import time
 class WhereIsBerry:
     def __init__(self):
         self.localization = localization.Localization()
-        self.start = time.time()
         #anchors
         anc = ac.getAnchors()
         self.anchors = anc['anchors']
@@ -32,12 +31,11 @@ class WhereIsBerry:
         self.last_times = np.zeros((n,1))
         self.last_time = None
         #udp
-        self.dao = DAO.UDP_DAO("localhost", 12346) #Receive data (from nodered)
+        self.dao = DAO.UDP_DAO("localhost", 12346)
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
         self.min_diff_anchors = 1 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
-        self.min_diff_anchors = 0 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
-        self.alpha = 1.9 #0.9722921
+        self.alpha = 1 #0.9722921
         self.TxPower = -66.42379
         self.decimal_approximation = 3
 
@@ -70,13 +68,11 @@ class WhereIsBerry:
             ts_milli = time.time() * 1000
             data = self.getData()
             _id = self.get_id(data)
-        data['elapsed_time'] = data['timestamp']/1000 - self.start
         measures_batch.append(data)
         while (data['timestamp'] - ts_milli) < self.data_interval or self.count_n_diff_anchors(measures_batch) < self.min_diff_anchors:
             data = self.getData()
             _id = self.get_id(data)
             if self.anchors.has_key(_id):
-                data['elapsed_time'] = data['timestamp']/1000 - self.start
                 measures_batch.append(data)
         #print 'measures_batch: ', len(measures_batch)
         return measures_batch
@@ -91,8 +87,9 @@ class WhereIsBerry:
                 self.estimates_history[index].pop(0)
 
 
-    def historyMean(self):
-        means = [(sum(i)/len(i) if len(i) != 0 else 0) for i in self.estimates_history]
+    def historyMean(self, z):
+        means = [(sum(i)/len(i) if len(i) != 0 else z) for i in self.estimates_history]
+        print 'history means', means
         return means
 
     def updateTimes(self, measures):
@@ -102,7 +99,7 @@ class WhereIsBerry:
 
     def whereIsBerry(self, filtered):
         measures = self.getMeasures()
-        print 'minors:', [m['minor'] for m in measures]
+        print '************************ \nminors:', [m['minor'] for m in measures]
         #print "Unfiltered:", measures
         #print "Batch:", len(measures)
         #meas = self.getMeasures()
@@ -122,10 +119,11 @@ class WhereIsBerry:
             batch_size = len(measures)
 
             ######F(k) - state transition model (static)
-            now = time.time()
+            now = time.time() # measures[0]['timestamp']
             if(self.last_time == None):
                 self.last_time = now
-            delta_t = [now - self.last_time]*(2*n)
+            delta_t = [(now - self.last_time)/1000]*(2*n)
+            print 'delta_t', delta_t
             for m in measures:
                 index = self.anchors_ids.index(self.get_id(m))
                 #delta_t.append((m['timestamp'] - self.last_time[index][0])/1000)
@@ -135,7 +133,7 @@ class WhereIsBerry:
                 F[i-1][i-1] = 1
                 F[i-1][i] = delta_t[i]
                 F[i][i] = 1
-            print 'F', F
+            #print 'F', F
 
             ######H(k) - observation model (dynamic)
             H = np.zeros((batch_size,2*n))
@@ -144,15 +142,15 @@ class WhereIsBerry:
                 index = self.anchors_ids.index(self.get_id(m))
                 H[row_n][(2*index)] = 1
                 row_n += 1
-            print 'H', H
+            #print 'H', H
 
             ######Q(k) - process noise covarinace matrix (static)
             Q = np.zeros((2*n,2*n))
             for i in range(1,2*n,2):
-                Q[i-1][i-1] = 0.001
+                Q[i-1][i-1] = 0.01
                 #Q[i-1][i] = 0.001
-                Q[i][i] = 0.001
-            print 'Q', Q
+                Q[i][i] = 0.01
+            #print 'Q', Q
 
             ######z(k) - measurement vector (dynamic)
             z = np.empty((batch_size,1))
@@ -160,33 +158,30 @@ class WhereIsBerry:
             for m in measures:
                 z[row_n] = m['rssi']
                 row_n += 1
-            print 'z', z
+            #print 'z', z
 
             ######R(k) - measurement noise matrix (dynamic)
-            meas_noise_var = []
+            '''delta_d_times_G = []
+            G = 1 ######gain
+            row_n = 0
             for m in measures:
                 _id = self.get_id(m)
                 index = self.anchors_ids.index(_id)
-                '''if len(self.estimates_history[index]) > 0:
-                    var = np.var(np.array([self.estimates_history[index]]))
-                else:
-                    var = 1'''
-                var = 100
-                meas_noise_var.append(var)
-
-            print 'var', meas_noise_var
-            R = np.diag((meas_noise_var))
-            print 'R', R
+                delta_d_times_G.append((z[row_n][0] -  self.historyMean(z[row_n][0])[index])*G)
+                #delta_d_times_G.append(0.1)
+                row_n += 1'''
+            #print 'delta_d * G', delta_d_times_G
+            R = np.diag((delta_d_times_G))
+            #print 'R', R
 
             #compute kalman filtering
-            x = self.kalman.estimate(z, F, H, Q, R)
-            print 'X FILTRATO\n', x
+            x = self.kalman.estimate(z, F, H, Q, G, R)
+            #print 'X FILTRATO', x
 
             #replace or append filtered measure to dictionary
             for m in measures:
                 _id = self.get_id(m)
                 index = self.anchors_ids.index(_id)
-                print '********id:', _id, 'minor:', m['minor'], 'X:',x[index*2][0], 'rssi:', m['rssi']
                 m['rssi'] = x[index*2][0]
                 filtered_measures[_id] = m
             measures = [ filtered_measures[k] for k in filtered_measures ]
@@ -196,29 +191,23 @@ class WhereIsBerry:
             self.last_time = now
 
         #print "Filtered:", measures
-        distances = {}
+        a = {}
         print "unfiltered"
         for u in unfiltered:
             print u['dist']
-            distances['unfiltered'] = u['dist']
-            print 'id:', u['minor'] , 'dist:', u['dist'], 'timestamp:', u['timestamp']
+            a['unfiltered'] = u['dist']
 
         print "filtered"
         for m in measures:
             dist = round(10.0 ** (( self.TxPower - m['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
             m['dist'] = dist
             print dist
-            distances['filtered'] = m['dist']
-            print 'id:', m['minor'], 'dist:', m['dist'], 'timestamp:', m['timestamp']
+            a['filtered'] = m['dist']
 
-        estimates = {}
-        #estimates['timestamp'] = time.time() - self.start
-        estimates['distances'] = distances
 
-        message = {}
-        message['measures'] = measures
-        message['estimates'] = estimates
+
+
         #location = self.localization.trilateration(measures)
         #print 'BERRY E\' QUIIII!!!!!'
         #print location
-        return message #location
+        return a#location

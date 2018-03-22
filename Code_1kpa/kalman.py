@@ -13,18 +13,21 @@ class Kalman:
     #u(k) - control input vector
     #B(k) - control input model
     #Q - process noice covariance matrix
-    def estimate(self, z, F, H, Q, R, u = 0, B = None):
+    def estimate(self, z, F, H, Q, G, R, u = 0, B = None):
         if B == None:
             B = np.zeros((self.n*2,1))
         #PREDICTION STEP
         x_priori = F.dot(self.last_x_posteriori) + B.dot(u)   #x(k|k-1)
         P_priori = F.dot(self.last_P_posteriori).dot(F.T) + Q   #P(k|k-1) - state covariance matrix
+        print 'P_priori', P_priori
         #MEASUREMENT STEP
         y = z - H.dot(x_priori)    #y(k) - error vector
         S = H.dot(P_priori).dot(H.T) + R    #S(k) - innovation matrix
         print 'S', S
+        #print 'S', S
         #UPDATE STATE
         K = P_priori.dot(H.T).dot(inv(S))#K = P_priori.dot(H.T).dot(inv(S))   #K(k) - Kalman gain
+        print 'K', K
         x_posteriori = x_priori + K.dot(y)  #x(k|k)
         P_posteriori = (np.eye(self.n*2) - K.dot(H)).dot(P_priori) #P(k|k)
         self.last_x_posteriori = x_posteriori

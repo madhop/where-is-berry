@@ -22,7 +22,7 @@ class Kalman:
         #MEASUREMENT STEP
         y = z - H.dot(x_priori)    #y(k) - error vector
         S = H.dot(P_priori).dot(H.T) + R    #S(k) - innovation matrix
-        #print 'S', S
+        print 'S', S
         #UPDATE STATE
         K = P_priori.dot(H.T).dot(inv(S))#K = P_priori.dot(H.T).dot(inv(S))   #K(k) - Kalman gain
         x_posteriori = x_priori + K.dot(y)  #x(k|k)

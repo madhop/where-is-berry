@@ -70,11 +70,13 @@ class WhereIsBerry:
             ts_milli = time.time() * 1000
             data = self.getData()
             _id = self.get_id(data)
+        data['elapsed_time'] = data['timestamp']/1000 - self.start
         measures_batch.append(data)
         while (data['timestamp'] - ts_milli) < self.data_interval or self.count_n_diff_anchors(measures_batch) < self.min_diff_anchors:
             data = self.getData()
             _id = self.get_id(data)
             if self.anchors.has_key(_id):
+                data['elapsed_time'] = data['timestamp']/1000 - self.start
                 measures_batch.append(data)
         #print 'measures_batch: ', len(measures_batch)
         return measures_batch
@@ -210,11 +212,14 @@ class WhereIsBerry:
             distances['filtered'] = m['dist']
             print 'id:', m['minor'], 'dist:', m['dist'], 'timestamp:', m['timestamp']
 
-        location = {}
-        location['timestamp'] = time.time() - self.start
-        location['distances'] = distances
+        estimates = {}
+        #estimates['timestamp'] = time.time() - self.start
+        estimates['distances'] = distances
 
+        message = {}
+        message['measures'] = measures
+        message['estimates'] = estimates
         #location = self.localization.trilateration(measures)
         #print 'BERRY E\' QUIIII!!!!!'
         #print location
-        return location #location
+        return message #location

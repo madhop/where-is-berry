@@ -1,0 +1,63 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <!--<script src="/home/luca/where-is-berry/NodeRed/lib/plotly-latest.min.js"></script>-->
+</head>
+<body>
+<div id="distance_plot" style="width:600px;height:250px;"></div>
+<script>
+	var distance_plot = document.getElementById('distance_plot');
+
+    timestamp = [];
+    filtered_data = [];
+    unfiltered_data = [];
+    var filtered = {
+                x: timestamp,
+                y: filtered_data,
+                name : 'filtered'
+            }
+
+    var unfiltered = {
+                x : timestamp,
+                y: unfiltered_data,
+                name : 'unfiltered'
+            }
+
+    var layout = {
+        autosize : false,
+        heigth : 500,
+        width : 800
+    }
+
+    Plotly.newPlot(distance_plot, [], layout);
+    Plotly.addTraces(distance_plot,[filtered, unfiltered]);
+
+    function update(){
+        $.getJSON( "http://{{_host}}/where-is-berry/getLocation", function(response){updatePlot(response)});
+    }
+
+
+
+    function updatePlot(data){
+        if(data.timestamp != timestamp[timestamp.length-1]){
+            timestamp.push(data.timestamp)
+            filtered_data.push(data.distances.filtered)
+            unfiltered_data.push(data.distances.unfiltered)
+            filtered.y = filtered_data
+            filtered.x = timestamp
+            unfiltered.y = unfiltered_data
+            unfiltered.x = timestamp
+            Plotly.deleteTraces(distance_plot, [0,1]);
+            Plotly.addTraces(distance_plot, [filtered, unfiltered]);
+        }
+    }
+
+
+    setInterval(function(){update();},200);
+
+
+
+
+
+</script>
+</body>

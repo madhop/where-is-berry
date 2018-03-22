@@ -1,0 +1,88 @@
+<head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!--<script src="/home/luca/where-is-berry/NodeRed/lib/plotly-latest.min.js"></script>-->
+</head>
+<body>
+
+<div class="container">
+  <div class="row">
+    <div class="form-check form-check-inline" id="beacons"></div>
+    <div id="distance_plot" style="width:600px;height:250px;"></div>
+  </div>
+</div>
+
+
+<script>
+
+
+  for(i=0; i<10;i++){
+    beacon_n = i+1
+    var append_str = '<input class="form-check-input" type="radio" name="beacon" id="'+i+'">' +
+                      '<label class="form-check-label" for="'+i+'">Beacon '+beacon_n+'</label>'
+    //$('#beacons').append('<div class="col"><input id="'+i+'" name="beacon" type="radio"> Beacon '+beacon_n+'</div>')
+    $('#beacons').append(append_str)
+  }
+
+	var distance_plot = document.getElementById('distance_plot');
+
+  var distance_plot_data = {}
+  distance_plot_data[10] = {}
+  distance_plot_data[10]['elapsed_time'] = []
+  distance_plot_data[10]['filtered_data'] = []
+  distance_plot_data[10]['unfiltered_data'] = []
+
+  var filtered_trace = {
+    x : [],
+    y : [],
+    name : 'Beacon 10 filtered'
+  }
+  var unfiltered_trace = {
+    x : [],
+    y : [],
+    name : 'Beacon 10 unfiltered'
+  }
+
+  var layout = {
+      autosize : false,
+      heigth : 500,
+      width : 800
+  }
+
+  Plotly.newPlot(distance_plot, [], layout);
+  Plotly.addTraces(distance_plot,[filtered_trace, unfiltered_trace]);
+
+  function update(){
+      $.getJSON( "http://{{_host}}/where-is-berry/getLocation", function(response){updatePlot(response)});
+  }
+
+
+
+  function updatePlot(data){
+    //update distance plot
+    for (i = 0 ; i < data.measures.length; i++){
+      if(data.measures[i]['minor'] == 10 && data.measures[i].elapsed_time != distance_plot_data[10].elapsed_time[distance_plot_data[10].elapsed_time.length-1]){
+          distance_plot_data[10].elapsed_time.push(data.measures[i].elapsed_time)
+          distance_plot_data[10].filtered_data.push(data.estimates.distances.filtered)
+          distance_plot_data[10].unfiltered_data.push(data.estimates.distances.unfiltered)
+          unfiltered_trace.y = distance_plot_data[10].unfiltered_data
+          filtered_trace.y = distance_plot_data[10].filtered_data
+          unfiltered_trace.x = distance_plot_data[10].elapsed_time
+          filtered_trace.x = distance_plot_data[10].elapsed_time
+          Plotly.deleteTraces(distance_plot, [0,1]);
+          Plotly.addTraces(distance_plot,[filtered_trace, unfiltered_trace]);
+      }
+    }
+  }
+
+  //change beacon
+  $("#beacons").click(function(event){
+    console.log(event.target.id);
+  });
+
+  //ajax trigger
+  setInterval(function(){update();},200);
+</script>
+</body>

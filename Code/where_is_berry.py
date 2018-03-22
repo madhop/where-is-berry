@@ -190,7 +190,6 @@ class WhereIsBerry:
                 m['rssi'] = x[index*2][0]
                 filtered_measures[_id] = m
             measures = [ filtered_measures[k] for k in filtered_measures ]
-            print '++ measures', measures
 
             self.updateHistory(measures)
             #self.updateTimes(measures)

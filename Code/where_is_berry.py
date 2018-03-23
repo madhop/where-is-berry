@@ -137,7 +137,6 @@ class WhereIsBerry:
                         F[i][i] = 1
                     print 'F', F
 
-
                     ######Q(k) - process noise covarinace matrix (static)
                     Q = np.zeros((2*n,2*n))
                     for i in range(1,2*n,2):
@@ -146,22 +145,6 @@ class WhereIsBerry:
                         Q[i][i] = 0
                     print 'Q', Q
 
-                    ######z(k) - measurement vector (dynamic)
-                    '''z = np.empty((batch_size,1))
-                    row_n = 0
-                    for m in unfiltered_batch:
-                        z[row_n][0] = m['rssi']
-                        row_n += 1
-                    print 'z', z'''
-
-                    ######H(k) - observation model (dynamic)
-                    '''H = np.zeros((batch_size,2*n))
-                    row_n = 0
-                    for m in unfiltered_batch:
-                        index = self.anchors_ids.index(self.get_id(m))
-                        H[row_n][(2*index)] = 1
-                        row_n += 1
-                        print 'H', H'''
 
                     ######z(k) - measurement vector (dynamic)
                     z = np.empty((batch_size,1))

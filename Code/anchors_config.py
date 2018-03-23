@@ -1,10 +1,14 @@
 import anchor as a
 import csv
 import pprint
+import json
+
+config = json.load(open('../Config/config.json'))
+filePath = config['filePath']
 
 anchors = {'anchors_ids': [],
 'anchors': {}}
-with open('/home/umberto/Desktop/anchor_config.csv', 'rb') as f:
+with open(filePath, 'rb') as f:
     anchorsreader = list(csv.reader(f, delimiter = ','))
     index = anchorsreader[0].index('coordinates')
     for j in range(2, len(anchorsreader)):

@@ -2,11 +2,12 @@
 import where_is_berry as wib
 import DAO
 import matplotlib.pyplot as plt
+import pprint
 
 dao = DAO.UDP_DAO("localhost", 12347) #publish locations
 berry = wib.WhereIsBerry()
 
 while True:
     location = berry.whereIsBerry(True)
-    print location
+    pprint.pprint(location)
     dao.writeData(location)

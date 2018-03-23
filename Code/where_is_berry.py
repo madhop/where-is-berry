@@ -35,7 +35,7 @@ class WhereIsBerry:
         self.dao = DAO.UDP_DAO("localhost", 12346) #Receive data (from nodered)
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 4 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.min_diff_anchors = 1 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         self.alpha = 1.6 #0.9722921
         self.TxPower = -67.5
         self.decimal_approximation = 3
@@ -195,7 +195,9 @@ class WhereIsBerry:
                 fm['dist'] = dist
                 filtered_measures.append(fm)
 
-            filtered_location = self.localization.trilateration(filtered_measures)
+            filtered_location = {}
+            if len(self.anchors) > 3:
+                filtered_location = self.localization.trilateration(filtered_measures)
             self.updateHistory(filtered_measures)
             #self.updateTimes(measures)
             self.last_time = now
@@ -217,7 +219,9 @@ class WhereIsBerry:
             um['dist'] = dist
             unfiltered_measures.append(um)
 
-        unfiltered_location = self.localization.trilateration(unfiltered_measures)
+        unfiltered_location = {}
+        if len(self.anchors) > 3:
+            unfiltered_location = self.localization.trilateration(unfiltered_measures)
 
         localization_unfiltered = {}
         localization_unfiltered['measures'] = unfiltered_measures

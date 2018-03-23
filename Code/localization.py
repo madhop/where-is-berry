@@ -1,22 +1,8 @@
-import anchors_config as ac
 import numpy as np
 
 class Localization:
     def __init__(self):
-        self.anchors = ac.getAnchors()
-        #anchors
-        anc = ac.getAnchors()
-        self.anchors = anc['anchors']
-        self.anchors_ids = anc['anchors_ids']
-        self.anchor_id_keys = anc['idKeys']
-
-    #construct key
-    def get_id(self, data):
-        _id = ''
-        for i in self.anchor_id_keys[:-1]:
-            _id += str(data[i]) + ':'
-        _id += str(data[self.anchor_id_keys[-1]])
-        return _id
+        pass
 
     #Trilateration
     def trilateration(self, data):

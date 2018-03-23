@@ -63,7 +63,7 @@
   function updatePlot(data){
     //update distance plot
     for (i = 0 ; i < data.measures.length; i++){
-      if(data.measures[i]['minor'] == 10 && data.measures[i].elapsed_time != distance_plot_data[10].elapsed_time[distance_plot_data[10].elapsed_time.length-1]){
+      if(data.measures[i]['minor'] == 5 && data.measures[i].elapsed_time != distance_plot_data[10].elapsed_time[distance_plot_data[10].elapsed_time.length-1]){
           distance_plot_data[10].elapsed_time.push(data.measures[i].elapsed_time)
           distance_plot_data[10].filtered_data.push(data.estimates.distances.filtered)
           distance_plot_data[10].unfiltered_data.push(data.estimates.distances.unfiltered)

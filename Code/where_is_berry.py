@@ -36,7 +36,7 @@ class WhereIsBerry:
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
         self.min_diff_anchors = 1 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
-        self.alpha = 1.6 #0.9722921
+        self.alpha = 1.9 #0.9722921
         self.TxPower = -67.5
         self.decimal_approximation = 3
         self.batch_size = 0 #if 0: batch_size = len(measures) else batch_size = self.batch_size
@@ -137,46 +137,59 @@ class WhereIsBerry:
                         F[i][i] = 1
                     print 'F', F
 
+
+                    ######Q(k) - process noise covarinace matrix (static)
+                    Q = np.zeros((2*n,2*n))
+                    for i in range(1,2*n,2):
+                        Q[i-1][i-1] = 0
+                        #Q[i-1][i] = 0.001
+                        Q[i][i] = 0
+                    print 'Q', Q
+
+                    ######z(k) - measurement vector (dynamic)
+                    '''z = np.empty((batch_size,1))
+                    row_n = 0
+                    for m in unfiltered_batch:
+                        z[row_n][0] = m['rssi']
+                        row_n += 1
+                    print 'z', z'''
+
                     ######H(k) - observation model (dynamic)
-                    H = np.zeros((batch_size,2*n))
+                    '''H = np.zeros((batch_size,2*n))
                     row_n = 0
                     for m in unfiltered_batch:
                         index = self.anchors_ids.index(self.get_id(m))
                         H[row_n][(2*index)] = 1
                         row_n += 1
-                    print 'H', H
-
-                    ######Q(k) - process noise covarinace matrix (static)
-                    Q = np.zeros((2*n,2*n))
-                    for i in range(1,2*n,2):
-                        Q[i-1][i-1] = 0.001
-                        #Q[i-1][i] = 0.001
-                        Q[i][i] = 0.001
-                    print 'Q', Q
+                        print 'H', H'''
 
                     ######z(k) - measurement vector (dynamic)
                     z = np.empty((batch_size,1))
-                    row_n = 0
-                    for m in unfiltered_batch:
-                        z[row_n][0] = m['rssi']
-                        row_n += 1
-                    print 'z', z
-
                     ######R(k) - measurement noise matrix (dynamic)
                     meas_noise_var = []
+                    ######H(k) - observation model (dynamic)
+                    H = np.zeros((batch_size,2*n))
+                    row_n = 0
                     for m in unfiltered_batch:
-                        _id = self.get_id(m)
-                        index = self.anchors_ids.index(_id)
+                        index = self.anchors_ids.index(self.get_id(m))
+                        ##z
+                        z[row_n][0] = m['rssi']
+                        ##R
                         '''if len(self.estimates_history[index]) > 0:
                             var = np.var(np.array([self.estimates_history[index]]))
                         else:
                             var = 1'''
-                        var = 100
+                        var = 30
                         meas_noise_var.append(var)
+                        #H
+                        H[row_n][(2*index)] = 1
+                        row_n += 1
 
                     print 'var', meas_noise_var
                     R = np.diag((meas_noise_var))
                     print 'R', R
+                    print 'H', H
+                    print 'z', z
 
                     #compute kalman filtering
                     x = self.kalman.estimate(z, F, H, Q, R)
@@ -190,7 +203,8 @@ class WhereIsBerry:
                 fm['id'] = _id
                 fm['rssi'] = x[index*2][0]
                 fm['coordinates'] = self.anchors[a].coordinates
-                fm['timestamp'] = self.last_time
+                fm['timestamp'] = now
+                fm['elapsed_time'] = now - self.start
                 dist = round(10.0 ** (( self.TxPower - fm['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
                 fm['dist'] = dist
                 filtered_measures.append(fm)
@@ -216,6 +230,7 @@ class WhereIsBerry:
             um['rssi'] = u['rssi']
             um['coordinates'] = self.anchors[_id].coordinates
             um['timestamp'] = u['timestamp']
+            um['elapsed_time'] = u['timestamp'] - self.start
             um['dist'] = dist
             unfiltered_measures.append(um)
 

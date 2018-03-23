@@ -27,5 +27,8 @@ with open(filePath, 'rb') as f:
 
 anchors['idKeys'] = anchors['anchors'].itervalues().next().id.keys()
 
+for a in anchors['anchors']:
+    print anchors['anchors'][a].coordinates
+
 def getAnchors():
     return anchors

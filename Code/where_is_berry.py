@@ -90,6 +90,10 @@ class WhereIsBerry:
             if len(self.estimates_history[index]) > self.history_length:
                 self.estimates_history[index].pop(0)
 
+    #compute distance between device and anchor
+    def computeDist(self, rssi):
+        return round(10.0 ** (( self.TxPower - rssi )/(10.0 * self.alpha)), self.decimal_approximation)
+
 
     def historyMean(self):
         means = [(sum(i)/len(i) if len(i) != 0 else 0) for i in self.estimates_history]
@@ -188,7 +192,7 @@ class WhereIsBerry:
                 fm['coordinates'] = self.anchors[a].coordinates
                 fm['timestamp'] = now
                 fm['elapsed_time'] = now - self.start
-                dist = round(10.0 ** (( self.TxPower - fm['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
+                dist = self.computeDist(fm['rssi'])
                 fm['dist'] = dist
                 filtered_measures.append(fm)
 
@@ -207,7 +211,7 @@ class WhereIsBerry:
         unfiltered_measures = []
         for u in unfiltered:
             _id = self.get_id(u)
-            dist = round(10.0 ** (( self.TxPower - u['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
+            dist = self.computeDist(u['rssi'])
             um = {}
             um['id'] = _id
             um['rssi'] = u['rssi']

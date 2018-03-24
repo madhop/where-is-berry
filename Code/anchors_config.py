@@ -6,8 +6,7 @@ import json
 config = json.load(open('../Config/config.json'))
 filePath = config['filePath']
 
-anchors = {'anchors_ids': [],
-'anchors': {}}
+anchors = {'anchors_ids' : [], 'anchors' : {}}
 with open(filePath, 'rb') as f:
     anchorsreader = list(csv.reader(f, delimiter = ','))
     index = anchorsreader[0].index('coordinates')

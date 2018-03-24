@@ -215,8 +215,8 @@ class WhereIsBerry:
                 message_measures.append(measure)
 
             location = {}
-            if len(self.anchors) > 3:
-                location = self.localization.trilateration(filtered_measures)
+            if self.min_diff_anchors >= 3:
+                location = self.localization.trilateration(message_measures)
 
             localization = {}
             localization['measures'] = message_measures

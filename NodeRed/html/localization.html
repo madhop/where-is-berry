@@ -105,7 +105,8 @@
   }
   Plotly.newPlot(location_plot, traces, location_plot_layout);
 
-
+  var init = true
+  var last_timestamp = 0
   //UPDATES
   //DISTANCE PLOT SELECTORS
   if(beacons_ids.length > 0){
@@ -120,59 +121,65 @@
 
 
   function updatePlotData(data){
-    for (key in data){
-      //UPDATE DISTANCE PLOT DATA
-      loc = data[key]
-      measures = loc['measures']
-      for(i=0; i<measures.length;i++){
-        beacon_id = measures[i]['id']
-        if(measures[i].elapsed_time != distance_plot_data[beacon_id][key].elapsed_time[distance_plot_data[beacon_id][key].elapsed_time.length-1]){
-          distance_plot_data[beacon_id][key].elapsed_time.push(measures[i].elapsed_time)
-          distance_plot_data[beacon_id][key].distance.push(measures[i].dist)
-        }
-      }
-      distance_plot_traces[key].y = distance_plot_data[selected_beacon][key].distance
-      distance_plot_traces[key].x = distance_plot_data[selected_beacon][key].elapsed_time
-
-      //UPDATE LOCATION PLOT DATA
-      _location = loc['location']
-      for(var c in coordinates){
-        location_plot_data[key][coordinates[c]].push(_location[coordinates[c]])
-        location_plot_traces[key][coordinates[c]] = location_plot_data[key][coordinates[c]]
-      }
-      if(location_plot_data[key][coordinates[0]].length > location_history_size){ //Snake beahavior
-        for(var c in coordinates){
-          location_plot_data[key][coordinates[c]].splice(0,1)
-        }
-      }
+    if(init){
+      last_timestamp = data.timestamp
+      init = false
     }
-
-    /*
-    //SNAKE
-    for(var b in distance_plot_data){
-      var count = 0
-      var firstL = ''
-      for(var l in distance_plot_data[b]){
-        if(count == 0){
-          firstL = l
+    if(last_timestamp != data.timestamp){
+      for (key in data.localizations){
+        //UPDATE DISTANCE PLOT DATA
+        loc = data.localizations[key]
+        measures = loc['measures']
+        for(i=0; i<measures.length;i++){
+          beacon_id = measures[i]['id']
+          if(measures[i].elapsed_time != distance_plot_data[beacon_id][key].elapsed_time[distance_plot_data[beacon_id][key].elapsed_time.length-1]){
+            distance_plot_data[beacon_id][key].elapsed_time.push(measures[i].elapsed_time)
+            distance_plot_data[beacon_id][key].distance.push(measures[i].dist)
+          }
         }
-        count +=1
-        break
+        distance_plot_traces[key].y = distance_plot_data[selected_beacon][key].distance
+        distance_plot_traces[key].x = distance_plot_data[selected_beacon][key].elapsed_time
+
+        //UPDATE LOCATION PLOT DATA
+        _location = loc['location']
+        for(var c in coordinates){
+          location_plot_data[key][coordinates[c]].push(_location[coordinates[c]])
+          location_plot_traces[key][coordinates[c]] = location_plot_data[key][coordinates[c]]
+        }
+        if(location_plot_data[key][coordinates[0]].length > location_history_size){ //Snake beahavior
+          for(var c in coordinates){
+            location_plot_data[key][coordinates[c]].splice(0,1)
+          }
+        }
       }
-      if(distance_plot_data[b][firstL].elapsed_time.length > 100){ //Snake beahavior
+
+      /*
+      //SNAKE
+      for(var b in distance_plot_data){
+        var count = 0
+        var firstL = ''
         for(var l in distance_plot_data[b]){
-          distance_plot_data[b][l].elapsed_time.splice(0,1)
-          distance_plot_data[b][l].distance.splice(0,1)
+          if(count == 0){
+            firstL = l
+          }
+          count +=1
+          break
         }
-      }
-    }*/
-    /*if(distance_plot_data[0][key].elapsed_time.length > 100){ //Snake beahavior
-    distance_plot_data[beacon_id][key].elapsed_time.splice(0,1)
-    distance_plot_data[beacon_id][key].distance.splice(0,1)
-    }*/
+        if(distance_plot_data[b][firstL].elapsed_time.length > 100){ //Snake beahavior
+          for(var l in distance_plot_data[b]){
+            distance_plot_data[b][l].elapsed_time.splice(0,1)
+            distance_plot_data[b][l].distance.splice(0,1)
+          }
+        }
+      }*/
+      /*if(distance_plot_data[0][key].elapsed_time.length > 100){ //Snake beahavior
+      distance_plot_data[beacon_id][key].elapsed_time.splice(0,1)
+      distance_plot_data[beacon_id][key].distance.splice(0,1)
+      }*/
 
-
-    updatePlotFigure()
+      updatePlotFigure()
+      last_timestamp = data.timestamp
+    }
   }
   function updatePlotFigure(){
     //UPDATE DISTANCE PLOT

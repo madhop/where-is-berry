@@ -115,7 +115,7 @@ class WhereIsBerry:
         unfiltered = self.getMeasures()
         print 'unfiltered', unfiltered
 
-        message = {}
+        localizations = {}
         for t in self.techniques:
             measures = []
             if t == 'localization_kalman':
@@ -227,8 +227,10 @@ class WhereIsBerry:
             localization = {}
             localization['measures'] = message_measures
             localization['location'] = location
-            message[t] = localization
-
+            localizations[t] = localization
+        message = {}
+        message['localizations'] = localizations
+        message['timestamp'] = time.time()
             #END FOR T IN TECHNIQUES
         print 'BERRY E\' QUIIII!!!!!'
         return message

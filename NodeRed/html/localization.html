@@ -18,20 +18,16 @@
 
 <script>
 
+  //PARAMETERS
   techniques = ['localization_unfiltered', 'localization_kalman']
-
   beacons_ids = ['1:b9407f30f5f8466eaff925556b57fe6d:6',
                  '1:b9407f30f5f8466eaff925556b57fe6d:7',
                  '1:b9407f30f5f8466eaff925556b57fe6d:8',
                  '1:b9407f30f5f8466eaff925556b57fe6d:9',
                  '1:b9407f30f5f8466eaff925556b57fe6d:10']
-
   _3d = false
-  coordinates = ['x','y']
-  if(_3d){
-    coordinates.push('z')
-  }
-
+  location_history_size = 100
+  distance_history_size = 100
 
   //INITIALIZATIONS
   //DISTANCE PLOT INITIALIZATION
@@ -73,6 +69,10 @@
   Plotly.newPlot(distance_plot, traces, distance_plot_layout);
 
   //LOCATION PLOT INITIALIZATION
+  coordinates = ['x','y']
+  if(_3d){
+    coordinates.push('z')
+  }
   var location_plot = document.getElementById('location_plot');
   var location_plot_data = {}
   for(var t in techniques){
@@ -107,25 +107,19 @@
 
 
   //UPDATES
+  //DISTANCE PLOT SELECTORS
   if(beacons_ids.length > 0){
     selected_beacon = beacons_ids[0]
     document.getElementById(selected_beacon).checked = true;
-    updatePlot();
+    updatePlotFigure();
   }
-
-  //change beacon
   $("#beacons").change(function(event){
     selected_beacon = event.target.id;
-    updatePlot();
+    updatePlotFigure();
   });
 
 
-  function update(){
-      $.getJSON( "http://{{_host}}/where-is-berry/getLocation", function(response){updatePlotData(response)});
-  }
-
   function updatePlotData(data){
-
     for (key in data){
       //UPDATE DISTANCE PLOT DATA
       loc = data[key]
@@ -146,7 +140,11 @@
         location_plot_data[key][coordinates[c]].push(_location[coordinates[c]])
         location_plot_traces[key][coordinates[c]] = location_plot_data[key][coordinates[c]]
       }
-
+      if(location_plot_data[key][coordinates[0]].length > location_history_size){ //Snake beahavior
+        for(var c in coordinates){
+          location_plot_data[key][coordinates[c]].splice(0,1)
+        }
+      }
     }
 
     /*
@@ -174,10 +172,9 @@
     }*/
 
 
-    updatePlot()
+    updatePlotFigure()
   }
-
-  function updatePlot(){
+  function updatePlotFigure(){
     //UPDATE DISTANCE PLOT
     traces = []
     for(trace_key in distance_plot_traces){
@@ -191,7 +188,10 @@
     }
     Plotly.newPlot(location_plot, traces, location_plot_layout);
   }
-
+  //AJAX
+  function update(){
+      $.getJSON( "http://{{_host}}/where-is-berry/getLocation", function(response){updatePlotData(response)});
+  }
   //ajax trigger
   setInterval(function(){update();},200);
 </script>

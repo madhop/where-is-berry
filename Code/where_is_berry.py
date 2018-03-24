@@ -35,7 +35,7 @@ class WhereIsBerry:
         self.dao = DAO.UDP_DAO("localhost", 12346) #Receive data (from nodered)
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 1 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.min_diff_anchors = 4 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         self.alpha = 1.9 #0.9722921
         self.TxPower = -67.5
         self.decimal_approximation = 3
@@ -115,7 +115,7 @@ class WhereIsBerry:
         unfiltered = self.getMeasures()
         print 'unfiltered', unfiltered
 
-        message = {}
+        localizations = {}
         for t in self.techniques:
             measures = []
             if t == 'localization_kalman':
@@ -227,8 +227,10 @@ class WhereIsBerry:
             localization = {}
             localization['measures'] = message_measures
             localization['location'] = location
-            message[t] = localization
-
+            localizations[t] = localization
+        message = {}
+        message['localizations'] = localizations
+        message['timestamp'] = time.time()
             #END FOR T IN TECHNIQUES
         print 'BERRY E\' QUIIII!!!!!'
         return message

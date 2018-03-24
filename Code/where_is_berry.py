@@ -64,11 +64,11 @@ class WhereIsBerry:
 
     def getMeasures(self):
         measures_batch = []
-        ts_milli = time.time() * 1000
+        ts_milli = time.time() * 1000.0
         data = self.getData()
         _id = self.get_id(data)
         while not self.anchors.has_key(_id):    #go on only if the first is a good anchor
-            ts_milli = time.time() * 1000
+            ts_milli = time.time() * 1000.0
             data = self.getData()
             _id = self.get_id(data)
         #change id
@@ -136,9 +136,12 @@ class WhereIsBerry:
                         now = unfiltered_batch[-1]['timestamp']# np.mean([m['timestamp'] for m in measures])
                         if(self.last_time == None):
                             self.last_time = now
-                        delta_t = [(now - self.last_time)/1000]*(2*n)
+
+
+                        delta_t = [(now - self.last_time)/1000.0]*(2*n)
+                        print 'now', now
+                        print 'self.last_time', self.last_time
                         print 'delta_t', delta_t
-                        #print 'delta_t:', delta_t
                         F = np.zeros((2*n,2*n))
                         for i in range(1,2*n,2):
                             F[i-1][i-1] = 1
@@ -210,7 +213,7 @@ class WhereIsBerry:
                 measure['rssi'] = m['rssi']
                 measure['coordinates'] = self.anchors[_id].coordinates
                 measure['timestamp'] = m['timestamp']    # millis
-                measure['elapsed_time'] = m['timestamp']/1000 - self.start # sec
+                measure['elapsed_time'] = m['timestamp']/1000.0 - self.start # sec
                 measure['dist'] = self.computeDist(m['rssi'])
                 message_measures.append(measure)
 

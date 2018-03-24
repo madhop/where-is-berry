@@ -10,77 +10,142 @@
 <div class="container">
   <div class="row">
     <div class="form-check form-check-inline" id="beacons"></div>
-    <div id="distance_plot" style="width:600px;height:250px;"></div>
+    <div id="distance_plot"></div>
   </div>
 </div>
 
 
 <script>
 
-
-  for(i=0; i<10;i++){
-    beacon_n = i+1
-    var append_str = '<input class="form-check-input" type="radio" name="beacon" id="'+i+'">' +
-                      '<label class="form-check-label" for="'+i+'">Beacon '+beacon_n+'</label>'
-    //$('#beacons').append('<div class="col"><input id="'+i+'" name="beacon" type="radio"> Beacon '+beacon_n+'</div>')
-    $('#beacons').append(append_str)
-  }
-
-	var distance_plot = document.getElementById('distance_plot');
-
+  var distance_plot = document.getElementById('distance_plot');
   var distance_plot_data = {}
-  distance_plot_data[10] = {}
-  distance_plot_data[10]['elapsed_time'] = []
-  distance_plot_data[10]['filtered_data'] = []
-  distance_plot_data[10]['unfiltered_data'] = []
 
-  var filtered_trace = {
-    x : [],
-    y : [],
-    name : 'Beacon 10 filtered'
+  beacons_ids = ['1:b9407f30f5f8466eaff925556b57fe6d:6',
+                 '1:b9407f30f5f8466eaff925556b57fe6d:7',
+                 '1:b9407f30f5f8466eaff925556b57fe6d:8',
+                 '1:b9407f30f5f8466eaff925556b57fe6d:9',
+                 '1:b9407f30f5f8466eaff925556b57fe6d:10']
+
+  for(i=0; i<beacons_ids.length;i++){
+    beacon_id = beacons_ids[i]
+    var append_str = '<input class="form-check-input" type="radio" name="beacon" id="'+beacon_id+'">' +
+                      '<label class="form-check-label" for="'+i+'">Beacon '+beacon_id+'</label>'
+    $('#beacons').append(append_str)
+
+    distance_plot_data[beacon_id] = {}
+
+    distance_plot_data[beacon_id]['localization_unfiltered'] = {}
+    distance_plot_data[beacon_id]['localization_kalman'] = {}
+
+    distance_plot_data[beacon_id]['localization_unfiltered']['distance'] = []
+    distance_plot_data[beacon_id]['localization_unfiltered']['elapsed_time'] = []
+
+    distance_plot_data[beacon_id]['localization_kalman']['distance'] = []
+    distance_plot_data[beacon_id]['localization_kalman']['elapsed_time'] = []
+
   }
-  var unfiltered_trace = {
-    x : [],
-    y : [],
-    name : 'Beacon 10 unfiltered'
+
+  var traces = {
+    localization_unfiltered : {
+      x : [],
+      y : []
+    },
+    localization_kalman : {
+      x : [],
+      y : []
+    }
   }
 
   var layout = {
-      autosize : false,
-      heigth : 500,
-      width : 800
+      title : 'Distance'
   }
 
   Plotly.newPlot(distance_plot, [], layout);
-  Plotly.addTraces(distance_plot,[filtered_trace, unfiltered_trace]);
+  for(trace_key in traces){
+    Plotly.addTraces(distance_plot, [traces[trace_key]]);
+  }
+
+  var layout_update = {
+    title : ' distance'
+  }
 
   function update(){
       $.getJSON( "http://{{_host}}/where-is-berry/getLocation", function(response){updatePlot(response)});
   }
 
-
-
   function updatePlot(data){
     //update distance plot
-    for (i = 0 ; i < data.measures.length; i++){
-      if(data.measures[i]['minor'] == 5 && data.measures[i].elapsed_time != distance_plot_data[10].elapsed_time[distance_plot_data[10].elapsed_time.length-1]){
-          distance_plot_data[10].elapsed_time.push(data.measures[i].elapsed_time)
-          distance_plot_data[10].filtered_data.push(data.estimates.distances.filtered)
-          distance_plot_data[10].unfiltered_data.push(data.estimates.distances.unfiltered)
-          unfiltered_trace.y = distance_plot_data[10].unfiltered_data
-          filtered_trace.y = distance_plot_data[10].filtered_data
-          unfiltered_trace.x = distance_plot_data[10].elapsed_time
-          filtered_trace.x = distance_plot_data[10].elapsed_time
-          Plotly.deleteTraces(distance_plot, [0,1]);
-          Plotly.addTraces(distance_plot,[filtered_trace, unfiltered_trace]);
+    for (key in data){
+      loc = data[key]
+      measures = loc['measures']
+      position = loc['position']
+      for(i=0; i<measures.length;i++){
+        beacon_id = measures[i]['id']
+        if(measures[i].timestamp != distance_plot_data[beacon_id][key].elapsed_time[distance_plot_data[beacon_id][key].elapsed_time.length-1]){
+          distance_plot_data[beacon_id][key].elapsed_time.push(measures[i].timestamp)
+          distance_plot_data[beacon_id][key].distance.push(measures[i].dist)
+        }
+      }
+      traces[key].y = distance_plot_data[selected_beacon][key].distance
+      traces[key].x = distance_plot_data[selected_beacon][key].elapsed_time
+    }
+
+    /*
+    for(var b in distance_plot_data){
+      var count = 0
+      var firstL = ''
+      for(var l in distance_plot_data[b]){
+        if(count == 0){
+          firstL = l
+        }
+        count +=1
+        break
+      }
+      if(distance_plot_data[b][firstL].elapsed_time.length > 100){ //Snake beahavior
+        for(var l in distance_plot_data[b]){
+          distance_plot_data[b][l].elapsed_time.splice(0,1)
+          distance_plot_data[b][l].distance.splice(0,1)
+        }
+      }
+    }*/
+    /*if(distance_plot_data[0][key].elapsed_time.length > 100){ //Snake beahavior
+    distance_plot_data[beacon_id][key].elapsed_time.splice(0,1)
+    distance_plot_data[beacon_id][key].distance.splice(0,1)
+    }*/
+
+
+    Plotly.deleteTraces(distance_plot, [0,1]);
+    for(trace_key in traces){
+      Plotly.addTraces(distance_plot, [traces[trace_key]]);
+    }
+
+  }
+
+
+
+  if(beacons_ids.length > 0){
+    selected_beacon = beacons_ids[0]
+    $("#"+selected_beacon).prop("checked", true);
+    updateTraces();
+  }
+
+
+  //change beacon
+  $("#beacons").change(function(event){
+    console.log(event.target.id);
+    selected_beacon = event.target.id;
+    updateTraces();
+  });
+
+  function updateTraces(){
+    for(var trace_key in traces){
+      Plotly.newPlot(distance_plot, [], layout);
+      for(trace_key in traces){
+        traces[trace_key].name = selected_beacon + " " + trace_key;
+        Plotly.addTraces(distance_plot, [traces[trace_key]]);
       }
     }
   }
-
-  //change beacon
-  $("#beacons").click(function(event){
-    console.log(event.target.id);
-  });
 
   //ajax trigger
   setInterval(function(){update();},200);

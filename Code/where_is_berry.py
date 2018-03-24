@@ -137,24 +137,27 @@ class WhereIsBerry:
                         if(self.last_time == None):
                             self.last_time = now
 
-
-                        delta_t = [(now - self.last_time)/1000.0]*(2*n)
+                        delta_t = (now - self.last_time)/1000.0
+                        delta_t_list = [delta_t]*(2*n)
                         print 'now', now
                         print 'self.last_time', self.last_time
                         print 'delta_t', delta_t
                         F = np.zeros((2*n,2*n))
                         for i in range(1,2*n,2):
                             F[i-1][i-1] = 1
-                            F[i-1][i] = delta_t[i]
+                            F[i-1][i] = delta_t_list[i]
                             F[i][i] = 1
                         print 'F', F
 
                         ######Q(k) - process noise covarinace matrix (static)
+                        phi = 0.01
                         Q = np.zeros((2*n,2*n))
                         for i in range(1,2*n,2):
-                            Q[i-1][i-1] = 0.001
-                            #Q[i-1][i] = 0.001
-                            Q[i][i] = 0.001
+                            Q[i-1][i-1] = (delta_t ** 3)/3
+                            Q[i-1][i] = (delta_t ** 2)/2
+                            Q[i][i-1] = (delta_t ** 2)/2
+                            Q[i][i] = delta_t
+                        Q = Q * phi
                         print 'Q', Q
 
                         ######z(k) - measurement vector (dynamic)

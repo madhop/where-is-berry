@@ -1,8 +1,9 @@
 import numpy as np
+import math
 
 class Localization:
     def __init__(self):
-        pass
+        print 'LOCALIZATION'
 
     #Trilateration
     def trilateration(self, data):
@@ -11,7 +12,7 @@ class Localization:
         b = np.empty((0,1), dtype=float)
         for d in data[:-1]:
             A_row = []
-            b_row = (d['dist'] ** 2)
+            b_row = ((d['dist'] ** 2) - (last['dist'] ** 2) )
             for c in d['coordinates']:
                 A_row.append( last['coordinates'][c] - d['coordinates'][c] )
                 b_row -= ((d['coordinates'][c] ** 2) - (last['coordinates'][c] **2))

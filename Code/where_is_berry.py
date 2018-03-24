@@ -40,6 +40,7 @@ class WhereIsBerry:
         self.TxPower = -67.5
         self.decimal_approximation = 3
         self.batch_size = 0 #if 0: batch_size = len(measures) else batch_size = self.batch_size
+        self.techniques = ['localization_kalman', 'localization_unfiltered']
 
 
     def getData(self):
@@ -84,7 +85,7 @@ class WhereIsBerry:
                 for k in self.anchor_id_keys:
                     del data[k]
                 measures_batch.append(data)
-        print 'measures_batch: ', measures_batch
+        #print 'measures_batch: ', measures_batch
         return measures_batch
 
     def updateHistory(self, measures):
@@ -115,9 +116,14 @@ class WhereIsBerry:
         print 'unfiltered', unfiltered
 
         message = {}
+        measures = []
+        for t in self.techniques:
+            measures = []
+            if t == 'localization_kalman':
+                pass
+            elif t == 'localization_unfiltered':
+                pass
 
-        for u in unfiltered:
-            u['dist'] = round(10.0 ** (( self.TxPower - u['rssi'] )/(10.0 * self.alpha)), self.decimal_approximation)    #compute distance between device and anchor
 
         if filtered:
             print 'FILTRO'
@@ -155,7 +161,6 @@ class WhereIsBerry:
                         Q[i][i] = 0.001
                     print 'Q', Q
 
-
                     ######z(k) - measurement vector (dynamic)
                     z = np.empty((batch_size,1))
                     ######R(k) - measurement noise matrix (dynamic)
@@ -188,25 +193,25 @@ class WhereIsBerry:
                     x = self.kalman.estimate(z, F, H, Q, R)
                     print 'X FILTRATO\n', x
                     #transform Kalman state in measures
-                    '''measures = []
                     for state in range(0,len(x), 2):
-                        _id = come dice luca
-                        m = ..
-                        measures.append(m)'''
+                        m = {}
+                        m['id'] = self.anchors_ids[state/2]
+                        m['rssi'] = x[state][0]
+                        m['timestamp'] = now
+                        measures.append(m)
 
             filtered_measures = []
-            for a in self.anchors:
-                _id = self.anchors[a].getID()
-                index = self.anchors_ids.index(_id)
-                fm = {}
-                fm['id'] = _id
-                fm['rssi'] = x[index*2][0]
-                fm['coordinates'] = self.anchors[a].coordinates
-                fm['timestamp'] = now   #millis
-                fm['elapsed_time'] = now/1000 - self.start # sec
-                dist = self.computeDist(fm['rssi'])
-                fm['dist'] = dist
-                filtered_measures.append(fm)
+            for m in measures:
+                _id = m['id']
+                dist = self.computeDist(m['rssi'])
+                measure = {}
+                measure['id'] = _id
+                measure['rssi'] = m['rssi']
+                measure['coordinates'] = self.anchors[_id].coordinates
+                measure['timestamp'] = m['timestamp']    # millis
+                measure['elapsed_time'] = m['timestamp']/1000 - self.start # sec
+                measure['dist'] = dist
+                filtered_measures.append(measure)
 
             filtered_location = {}
             if len(self.anchors) > 3:
@@ -219,6 +224,7 @@ class WhereIsBerry:
             localization_kalman['measures'] = filtered_measures
             localization_kalman['location'] = filtered_location
             message['localization_kalman'] = localization_kalman
+            #END IF FILTERED
 
         unfiltered_measures = []
         for u in unfiltered:
@@ -232,6 +238,7 @@ class WhereIsBerry:
             um['elapsed_time'] = u['timestamp']/1000 - self.start # sec
             um['dist'] = dist
             unfiltered_measures.append(um)
+
 
         unfiltered_location = {}
         if len(self.anchors) > 3:

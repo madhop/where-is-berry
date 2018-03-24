@@ -35,7 +35,7 @@ class WhereIsBerry:
         self.dao = DAO.UDP_DAO("localhost", 12346) #Receive data (from nodered)
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 4 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.min_diff_anchors = 1 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         self.alpha = 1.9 #0.9722921
         self.TxPower = -67.5
         self.decimal_approximation = 3
@@ -49,8 +49,8 @@ class WhereIsBerry:
     def count_n_diff_anchors(self, measures_batch):
         diff_anchors = []
         for d in measures_batch:
-            if d['minor'] not in diff_anchors:
-                diff_anchors.append(d['minor'])
+            if d['id'] not in diff_anchors:
+                diff_anchors.append(d['id'])
         return len(diff_anchors)
 
     #construct key
@@ -70,15 +70,21 @@ class WhereIsBerry:
             ts_milli = time.time() * 1000
             data = self.getData()
             _id = self.get_id(data)
-        data['elapsed_time'] = data['timestamp']/1000 - self.start
+        #change id
+        data['id'] = _id
+        for k in self.anchor_id_keys:
+            del data[k]
         measures_batch.append(data)
         while (data['timestamp'] - ts_milli) < self.data_interval or self.count_n_diff_anchors(measures_batch) < self.min_diff_anchors:
             data = self.getData()
             _id = self.get_id(data)
             if self.anchors.has_key(_id):
-                data['elapsed_time'] = data['timestamp']/1000 - self.start
+                #change id
+                data['id'] = _id
+                for k in self.anchor_id_keys:
+                    del data[k]
                 measures_batch.append(data)
-        #print 'measures_batch: ', len(measures_batch)
+        print 'measures_batch: ', measures_batch
         return measures_batch
 
     def updateHistory(self, measures):
@@ -101,12 +107,12 @@ class WhereIsBerry:
 
     def updateTimes(self, measures):
         for m in measures:
-            index = self.anchors_ids.index(self.get_id(m))
+            index = self.anchors_ids.index(m['id'])
             self.last_times[index][0] = m['timestamp']
 
     def whereIsBerry(self, filtered):
         unfiltered = self.getMeasures()
-        print 'minors:', [u['minor'] for u in unfiltered]
+        print 'unfiltered', unfiltered
 
         message = {}
 
@@ -144,9 +150,9 @@ class WhereIsBerry:
                     ######Q(k) - process noise covarinace matrix (static)
                     Q = np.zeros((2*n,2*n))
                     for i in range(1,2*n,2):
-                        Q[i-1][i-1] = 0
+                        Q[i-1][i-1] = 0.001
                         #Q[i-1][i] = 0.001
-                        Q[i][i] = 0
+                        Q[i][i] = 0.001
                     print 'Q', Q
 
 
@@ -158,7 +164,7 @@ class WhereIsBerry:
                     H = np.zeros((batch_size,2*n))
                     row_n = 0
                     for m in unfiltered_batch:
-                        index = self.anchors_ids.index(self.get_id(m))
+                        index = self.anchors_ids.index(m['id'])
                         ##z
                         z[row_n][0] = m['rssi']
                         ##R
@@ -181,6 +187,12 @@ class WhereIsBerry:
                     #compute kalman filtering
                     x = self.kalman.estimate(z, F, H, Q, R)
                     print 'X FILTRATO\n', x
+                    #transform Kalman state in measures
+                    '''measures = []
+                    for state in range(0,len(x), 2):
+                        _id = come dice luca
+                        m = ..
+                        measures.append(m)'''
 
             filtered_measures = []
             for a in self.anchors:
@@ -190,8 +202,8 @@ class WhereIsBerry:
                 fm['id'] = _id
                 fm['rssi'] = x[index*2][0]
                 fm['coordinates'] = self.anchors[a].coordinates
-                fm['timestamp'] = now
-                fm['elapsed_time'] = now - self.start
+                fm['timestamp'] = now   #millis
+                fm['elapsed_time'] = now/1000 - self.start # sec
                 dist = self.computeDist(fm['rssi'])
                 fm['dist'] = dist
                 filtered_measures.append(fm)
@@ -210,14 +222,14 @@ class WhereIsBerry:
 
         unfiltered_measures = []
         for u in unfiltered:
-            _id = self.get_id(u)
+            _id = u['id']
             dist = self.computeDist(u['rssi'])
             um = {}
             um['id'] = _id
             um['rssi'] = u['rssi']
             um['coordinates'] = self.anchors[_id].coordinates
-            um['timestamp'] = u['timestamp']
-            um['elapsed_time'] = u['timestamp'] - self.start
+            um['timestamp'] = u['timestamp']    # millis
+            um['elapsed_time'] = u['timestamp']/1000 - self.start # sec
             um['dist'] = dist
             unfiltered_measures.append(um)
 
@@ -231,4 +243,4 @@ class WhereIsBerry:
         message['localization_unfiltered'] = localization_unfiltered
 
         print 'BERRY E\' QUIIII!!!!!'
-        return message #location
+        return message

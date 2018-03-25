@@ -3,7 +3,7 @@ import math
 
 class Localization:
     def __init__(self):
-        print 'LOCALIZATION'
+        pass
 
     #Trilateration
     def trilateration(self, data):

@@ -20,7 +20,12 @@
 
   //PARAMETERS
   techniques = ['localization_unfiltered', 'localization_kalman']
-  beacons_ids = ['1:b9407f30f5f8466eaff925556b57fe6d:6',
+  beacons_ids = ['1:b9407f30f5f8466eaff925556b57fe6d:1',
+                 '1:b9407f30f5f8466eaff925556b57fe6d:2',
+                 '1:b9407f30f5f8466eaff925556b57fe6d:3',
+                 '1:b9407f30f5f8466eaff925556b57fe6d:4',
+                 '1:b9407f30f5f8466eaff925556b57fe6d:5',
+                 '1:b9407f30f5f8466eaff925556b57fe6d:6',
                  '1:b9407f30f5f8466eaff925556b57fe6d:7',
                  '1:b9407f30f5f8466eaff925556b57fe6d:8',
                  '1:b9407f30f5f8466eaff925556b57fe6d:9',
@@ -137,14 +142,13 @@
             distance_plot_data[beacon_id][key].distance.push(measures[i].dist)
           }
         }
-        distance_plot_traces[key].y = distance_plot_data[selected_beacon][key].distance
-        distance_plot_traces[key].x = distance_plot_data[selected_beacon][key].elapsed_time
+
 
         //UPDATE LOCATION PLOT DATA
         _location = loc['location']
         for(var c in coordinates){
           location_plot_data[key][coordinates[c]].push(_location[coordinates[c]])
-          location_plot_traces[key][coordinates[c]] = location_plot_data[key][coordinates[c]]
+          //location_plot_traces[key][coordinates[c]] = location_plot_data[key][coordinates[c]]
         }
         if(location_plot_data[key][coordinates[0]].length > location_history_size){ //Snake beahavior
           for(var c in coordinates){
@@ -182,18 +186,23 @@
     }
   }
   function updatePlotFigure(){
-    //UPDATE DISTANCE PLOT
-    traces = []
-    for(trace_key in distance_plot_traces){
-      traces.push(distance_plot_traces[trace_key]);
+    for(var trace_key in distance_plot_traces){
+      //UPDATE DISTANCE PLOT
+      distance_plot_traces[trace_key].y = distance_plot_data[selected_beacon][trace_key].distance
+      distance_plot_traces[trace_key].x = distance_plot_data[selected_beacon][trace_key].elapsed_time
+      traces = []
+      for(trace_key in distance_plot_traces){
+        traces.push(distance_plot_traces[trace_key]);
+      }
+      Plotly.newPlot(distance_plot, traces, distance_plot_layout);
+      //UPDATE LOCATION PLOT
+      location_plot_traces[trace_key][coordinates[c]] = location_plot_data[trace_key][coordinates[c]]
+      traces = []
+      for(trace_key in location_plot_traces){
+        traces.push(location_plot_traces[trace_key]);
+      }
+      Plotly.newPlot(location_plot, traces, location_plot_layout);
     }
-    Plotly.newPlot(distance_plot, traces, distance_plot_layout);
-    //UPDATE LOCATION PLOT
-    traces = []
-    for(trace_key in location_plot_traces){
-      traces.push(location_plot_traces[trace_key]);
-    }
-    Plotly.newPlot(location_plot, traces, location_plot_layout);
   }
   //AJAX
   function update(){

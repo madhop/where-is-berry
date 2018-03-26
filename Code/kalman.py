@@ -19,16 +19,17 @@ class Kalman:
         #PREDICTION STEP
         x_priori = F.dot(self.last_x_posteriori) + B.dot(u)   #x(k|k-1)
         P_priori = F.dot(self.last_P_posteriori).dot(F.T) + Q   #P(k|k-1) - state covariance matrix
-        print 'P_priori',P_priori
+        print 'P_priori\n',P_priori
         #MEASUREMENT STEP
         y = z - H.dot(x_priori)    #y(k) - error vector
         S = H.dot(P_priori).dot(H.T) + R    #S(k) - innovation matrix
-        print 'S', S
+        print 'S\n', S
         #UPDATE STATE
         K = P_priori.dot(H.T).dot(inv(S))#K = P_priori.dot(H.T).dot(inv(S))   #K(k) - Kalman gain
+        print 'K\n', K
         x_posteriori = x_priori + K.dot(y)  #x(k|k)
         P_posteriori = (np.eye(self.n*2) - K.dot(H)).dot(P_priori) #P(k|k)
-        print 'P_posteriori', P_posteriori
+        print 'P_posteriori\n', P_posteriori
         self.last_x_posteriori = x_posteriori
         self.last_P_posteriori = P_posteriori
         return x_posteriori

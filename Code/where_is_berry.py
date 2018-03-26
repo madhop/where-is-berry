@@ -26,7 +26,7 @@ class WhereIsBerry:
         self.history_length = 100
         n = len(self.anchors)
         x0 = np.array([[0.5], [0]]*n)#np.zeros((n*2,1))
-        P0 = np.diag([20]*(2*n))#np.zeros((2*n,2*n))
+        P0 = np.diag([100]*(2*n))#np.zeros((2*n,2*n))   '''2'''
         self.kalman = kalman.Kalman(x0, P0)
         self.estimates_history = [[] for i in range(0,(len(self.anchors)))]   #inizialization as list of empty lists (as many lists as the number of anchors)
         self.last_times = np.zeros((n,1))
@@ -35,9 +35,10 @@ class WhereIsBerry:
         self.dao = DAO.UDP_DAO("localhost", 12346) #Receive data (from nodered)
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 4 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
-        self.alpha = 1.9 #0.9722921
-        self.TxPower = -67.5
+        self.min_diff_anchors = 3 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        assert n >= self.min_diff_anchors, 'Not enough anchors: ' + str(n)
+        self.alpha = 1.7 #1.9 #0.9722921
+        self.TxPower =  -72#-67.5
         self.decimal_approximation = 3
         self.batch_size = 0 #if 0: batch_size = len(measures) else batch_size = self.batch_size
         self.techniques = ['localization_kalman', 'localization_unfiltered']
@@ -138,19 +139,17 @@ class WhereIsBerry:
                             self.last_time = now
 
                         delta_t = (now - self.last_time)/1000.0
+                        print 'delta_t:', delta_t
                         delta_t_list = [delta_t]*(2*n)
-                        print 'now', now
-                        print 'self.last_time', self.last_time
-                        print 'delta_t', delta_t
                         F = np.zeros((2*n,2*n))
                         for i in range(1,2*n,2):
                             F[i-1][i-1] = 1
                             F[i-1][i] = delta_t_list[i]
                             F[i][i] = 1
-                        print 'F', F
+                        print 'F\n', F
 
                         ######Q(k) - process noise covarinace matrix (static)
-                        phi = 0.01
+                        phi = 0.001
                         Q = np.zeros((2*n,2*n))
                         for i in range(1,2*n,2):
                             Q[i-1][i-1] = (delta_t ** 3)/3
@@ -158,7 +157,7 @@ class WhereIsBerry:
                             Q[i][i-1] = (delta_t ** 2)/2
                             Q[i][i] = delta_t
                         Q = Q * phi
-                        print 'Q', Q
+                        print 'Q\n', Q
 
                         ######z(k) - measurement vector (dynamic)
                         z = np.empty((batch_size,1))
@@ -172,11 +171,7 @@ class WhereIsBerry:
                             ##z
                             z[row_n][0] = m['rssi']
                             ##R
-                            '''if len(self.estimates_history[index]) > 0:
-                                var = np.var(np.array([self.estimates_history[index]]))
-                            else:
-                                var = 1'''
-                            var = 30
+                            var = 100 #30
                             meas_noise_var.append(var)
                             #H
                             H[row_n][(2*index)] = 1
@@ -184,13 +179,13 @@ class WhereIsBerry:
 
                         print 'var', meas_noise_var
                         R = np.diag((meas_noise_var))
-                        print 'R', R
-                        print 'H', H
-                        print 'z', z
+                        print 'R\n', R
+                        print 'H\n', H
+                        print 'z\n', z
 
                         #compute kalman filtering
                         x = self.kalman.estimate(z, F, H, Q, R)
-                        print 'X FILTRATO\n', x
+                        print 'x filtrato\n', x
                         #transform Kalman state in measures
                         for state in range(0,len(x), 2):
                             m = {}

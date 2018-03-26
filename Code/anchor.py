@@ -1,8 +1,9 @@
 class Anchor:
-    def __init__(self,_id,coordinates):
+    def __init__(self,_id,coordinates, tx_rate):
         self.id = _id
         self.coordinates = coordinates
         self.measures = []
+        self.tx_rate = tx_rate
 
     def getID(self):
         _id = ''

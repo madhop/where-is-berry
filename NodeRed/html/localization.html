@@ -10,6 +10,7 @@
 <div class="container">
   <div class="row">
     <div class="form-check form-check-inline" id="beacons"></div>
+    <button type="button" class="btn btn-primary" id="reset">Reset</button>
     <div id="distance_plot"></div>
     <div id="location_plot"></div>
   </div>
@@ -40,6 +41,7 @@
   var distance_plot_data = {}
 
   for(i=0; i<beacons_ids.length;i++){
+    //HTML
     beacon_id = beacons_ids[i]
     var append_str = '<div><input class="form-check-input" type="radio" name="beacon" id="'+beacon_id+'">' +
                       '<label class="form-check-label" for="'+i+'">Beacon '+beacon_id+'</label></div>'
@@ -47,6 +49,7 @@
 
     distance_plot_data[beacon_id] = {}
 
+    //DISTANCE PLOT DATA
     for(var t in techniques){
       distance_plot_data[beacon_id][techniques[t]] = {}
       distance_plot_data[beacon_id][techniques[t]]['distance'] = []
@@ -54,6 +57,7 @@
     }
   }
 
+  //DISTANCE PLOT TRACES
   var distance_plot_traces = {}
   for(var t in techniques){
     distance_plot_traces[techniques[t]] = {
@@ -210,5 +214,27 @@
   }
   //ajax trigger
   setInterval(function(){update();},200);
+
+  //RESET
+  $("#reset").click(function(){
+    for(i=0; i<beacons_ids.length;i++){
+      distance_plot_data[beacon_id] = {}
+      //DISTANCE PLOT DATA
+      for(var t in techniques){
+        distance_plot_data[beacon_id][techniques[t]] = {}
+        distance_plot_data[beacon_id][techniques[t]]['distance'] = []
+        distance_plot_data[beacon_id][techniques[t]]['elapsed_time'] = []
+      }
+      var distance_plot_traces = {}
+      for(var t in techniques){
+        distance_plot_traces[techniques[t]] = {
+          x : [],
+          y : [],
+          name : techniques[t]
+        }
+      }
+    }
+  });
+
 </script>
 </body>

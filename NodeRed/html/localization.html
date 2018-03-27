@@ -190,23 +190,25 @@
     }
   }
   function updatePlotFigure(){
+    new_distance_traces = []
+    new_location_traces = []
+    //UPDATE DISTANCE PLOT
     for(var trace_key in distance_plot_traces){
-      //UPDATE DISTANCE PLOT
       distance_plot_traces[trace_key].y = distance_plot_data[selected_beacon][trace_key].distance
       distance_plot_traces[trace_key].x = distance_plot_data[selected_beacon][trace_key].elapsed_time
-      traces = []
-      for(trace_key in distance_plot_traces){
-        traces.push(distance_plot_traces[trace_key]);
-      }
-      Plotly.newPlot(distance_plot, traces, distance_plot_layout);
+
+      new_distance_traces.push(distance_plot_traces[trace_key]);
+
       //UPDATE LOCATION PLOT
-      location_plot_traces[trace_key][coordinates[c]] = location_plot_data[trace_key][coordinates[c]]
-      traces = []
-      for(trace_key in location_plot_traces){
-        traces.push(location_plot_traces[trace_key]);
+      for(var c in coordinates){
+        console.log(trace_key)
+        location_plot_traces[trace_key][coordinates[c]] = location_plot_data[trace_key][coordinates[c]]
       }
-      Plotly.newPlot(location_plot, traces, location_plot_layout);
+
+      new_location_traces.push(location_plot_traces[trace_key]);
     }
+    Plotly.newPlot(distance_plot, new_distance_traces, distance_plot_layout);
+    Plotly.newPlot(location_plot, new_location_traces, location_plot_layout);
   }
   //AJAX
   function update(){

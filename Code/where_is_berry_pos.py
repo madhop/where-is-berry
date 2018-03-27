@@ -117,7 +117,8 @@ class WhereIsBerry:
 
         localizations = {}
         for t in self.techniques:
-            measures = []
+            message_measures = []
+            location = {}
             if t == 'localization_kalman':
                 print 'FILTRO'
                 meas_batch = min(self.batch_size, len(unfiltered))
@@ -197,40 +198,37 @@ class WhereIsBerry:
                             m['id'] = self.anchors_ids[state/2]
                             m['rssi'] = x[state][0]
                             m['timestamp'] = now
-                            measures.append(m)
+                            #measures.append(m)
 
+                        '''if self.min_diff_anchors >= 3:
+                            location = self.localization.trilateration(message_measures)'''
                     #self.updateHistory(filtered_measures)
                     #self.updateTimes(measures)
                     self.last_time = now
 
-                #END IF FILTERED
+            #END IF FILTERED
             elif t == 'localization_unfiltered':
-                measures = unfiltered
-
-            #COMMON PART FOR ALL TECHNIQUES
-            message_measures = []
-            for m in measures:
-                _id = m['id']
-                measure = {}
-                measure['id'] = _id
-                measure['rssi'] = m['rssi']
-                measure['coordinates'] = self.anchors[_id].coordinates
-                measure['timestamp'] = m['timestamp']    # millis
-                measure['elapsed_time'] = m['timestamp']/1000.0 - self.start # sec
-                measure['dist'] = self.computeDist(m['rssi'])
-                message_measures.append(measure)
-
-            location = {}
-            if self.min_diff_anchors >= 3:
-                location = self.localization.trilateration(message_measures)
+                for u in unfiltered:
+                    _id = u['id']
+                    measure = {}
+                    measure['id'] = _id
+                    measure['rssi'] = u['rssi']
+                    measure['coordinates'] = self.anchors[_id].coordinates
+                    measure['timestamp'] = u['timestamp']    # millis
+                    measure['elapsed_time'] = u['timestamp']/1000.0 - self.start # sec
+                    measure['dist'] = self.computeDist(u['rssi'])
+                    message_measures.append(measure)
+                if self.min_diff_anchors >= 3:
+                    location = self.localization.trilateration(message_measures)
 
             localization = {}
             localization['measures'] = message_measures
             localization['location'] = location
             localizations[t] = localization
+            #END FOR T IN TECHNIQUES
         message = {}
         message['localizations'] = localizations
         message['timestamp'] = time.time()
-            #END FOR T IN TECHNIQUES
+
         print 'BERRY E\' QUIIII!!!!!'
         return message

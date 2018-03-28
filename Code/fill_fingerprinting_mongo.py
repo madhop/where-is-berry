@@ -7,7 +7,9 @@ import time
 import DAO
 import measure
 
-min_data_per_anchor = 5
+pi_pos = {'x':0.5,'y':0.5,'z':0}    #position of the device in the map
+location = 'uni'
+min_data_per_anchor = 50
 
 #anchors
 anc = ac.getAnchors()
@@ -16,7 +18,7 @@ anchor_id_keys = anc['idKeys']
 print 'ANCHORS:'
 print [anchors[a].getID() for a in anchors]
 
-#get mongo collection
+#mongo
 mongo = MongoClient()
 db = mongo.fingerprinting   # db
 """
@@ -31,9 +33,9 @@ map = db.map_uni    # collection
 
 # fill model
 ts = time.time()
-model_anchors = {'location': 'uni', 'anchors': {}, 'timestamp': ts}
+model_anchors = {'location': location, 'anchors': {}, 'timestamp': ts}
 # delete old models if this room is already in the collection
-daletion = db.models.delete_many({'location':'uni'})
+deletion = db.models.delete_many({'location':location})
 
 #insert new anchors config
 for a in anchors:
@@ -49,7 +51,6 @@ for a in anchors:
 #get data form udp
 dao = DAO.UDP_DAO("localhost", 12346)
 
-pi_pos = {'x':0.5,'y':0.5,'z':0}    #position of the device in the map
 #from each anchor store 'min_data_per_anchor' rssi
 while False in [counts[c] >= min_data_per_anchor for c in counts]:
     data = ast.literal_eval(dao.readData())
@@ -62,4 +63,4 @@ while False in [counts[c] >= min_data_per_anchor for c in counts]:
     counts[_id] += 1
     print _id, '; count:', counts[_id]
 
-print 'mongoooo'
+print 'mongo'

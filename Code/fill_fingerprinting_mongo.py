@@ -7,20 +7,20 @@ import time
 import DAO
 import measure
 
-pi_pos = {'x':0.5,'y':0.5,'z':0}    #position of the device in the map
-location = 'uni'
-min_data_per_anchor = 50
+
+map_name = 'uni_1'  # must match with the id of a model
+pi_pos = {'x':0.2,'y':0,'z':0}    #position of the device in the map
+min_data_per_anchor = 20
 
 #anchors
 anc = ac.getAnchors()
 anchors = anc['anchors']
 anchor_id_keys = anc['idKeys']
-print 'ANCHORS:'
-print [anchors[a].getID() for a in anchors]
 
 #mongo
 mongo = MongoClient()
 db = mongo.fingerprinting   # db
+#TODO THIS COMMENT
 """
 'models' collection:
 'location': name of the location
@@ -28,20 +28,12 @@ db = mongo.fingerprinting   # db
     key: anchor id
     value: coordinates
 """
-models = db.models  # collection of models of different rooms
-map = db.map_uni    # collection
 
-# fill model
-ts = time.time()
-model_anchors = {'location': location, 'anchors': {}, 'timestamp': ts}
-# delete old models if this room is already in the collection
-deletion = db.models.delete_many({'location':location})
-
-#insert new anchors config
-for a in anchors:
-    model_anchors['anchors'][anchors[a].getID()] = anchors[a].coordinates
-
-models.insert(model_anchors)
+# collection of models of different rooms
+models = db.models
+assert models.count({ 'id' : map_name }) == 1, "No model with this id: " + map_name
+# collection where to insert the 'rssi's
+map = db[map_name]
 
 # initialize dictionary of counts
 counts = {}
@@ -51,7 +43,7 @@ for a in anchors:
 #get data form udp
 dao = DAO.UDP_DAO("localhost", 12346)
 
-#from each anchor store 'min_data_per_anchor' rssi
+#for each anchor store 'min_data_per_anchor' rssi
 while False in [counts[c] >= min_data_per_anchor for c in counts]:
     data = ast.literal_eval(dao.readData())
     _id = measure.get_id(data,anchor_id_keys)

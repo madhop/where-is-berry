@@ -36,8 +36,8 @@ class WhereIsBerry:
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
         self.min_diff_anchors = 3 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
-        self.alpha = 1.9 #0.9722921
-        self.TxPower = -67.5
+        self.alpha = 1.7 #1.9 #0.9722921
+        self.TxPower = -72
         self.decimal_approximation = 3
         self.batch_size = 0 #if 0: batch_size = len(measures) else batch_size = self.batch_size
         self.techniques = ['localization_kalman', 'localization_unfiltered']
@@ -151,7 +151,7 @@ class WhereIsBerry:
                         if(self.last_time == None):
                             self.last_time = now
 
-                        delta_t = 0 #(now - self.last_time)/1000.0
+                        delta_t = (now - self.last_time)/1000.0
                         delta_t_list = [delta_t]*(2*n)
                         print 'now', now
                         print 'self.last_time', self.last_time
@@ -164,7 +164,7 @@ class WhereIsBerry:
                         print 'F', F
 
                         ######Q(k) - process noise covarinace matrix (static)
-                        phi = 10
+                        phi = 0.01
                         Q = np.zeros((2*n,2*n))
                         for i in range(1,2*n,2):
                             Q[i-1][i-1] = (delta_t ** 3)/3
@@ -186,7 +186,7 @@ class WhereIsBerry:
                             ##z
                             z[row_n][0] = location_unfiltered[c]
                             ##R
-                            var = 30
+                            var = 1000
                             meas_noise_var.append(var)
                             #H
                             H[row_n][(2*row_n)] = 1

@@ -14,6 +14,8 @@
     <div id="distance_plot"></div>
     <div id="location_plot"></div>
     <div id="x_plot"></div>
+    <div id="y_plot"></div>
+    <div id="z_plot"></div>
   </div>
 </div>
 
@@ -33,7 +35,7 @@
                  '1:b9407f30f5f8466eaff925556b57fe6d:9',
                  '1:b9407f30f5f8466eaff925556b57fe6d:10']
   _3d = false
-  location_history_size = 100
+  location_history_size = 100 //100
   distance_history_size = 100
 
   //INITIALIZATIONS
@@ -141,7 +143,64 @@
   for(trace_key in x_plot_traces){
     traces.push(x_plot_traces[trace_key]);
   }
-  Plotly.newPlot(x_plot, traces,x_plot_layout);
+  Plotly.newPlot(x_plot, traces, x_plot_layout);
+
+  //Y PLOT INITIALIZATION
+  var y_plot = document.getElementById('y_plot');
+  var y_plot_data = {}
+  for(var t in techniques){
+    y_plot_data[techniques[t]] = {}
+    y_plot_data[techniques[t]]['y'] = []
+    y_plot_data[techniques[t]]['elapsed_time'] = []
+  }
+
+  var y_plot_traces = {}
+  for(var t in techniques){
+    y_plot_traces[techniques[t]] = {
+      x : [],
+      y : [],
+      name : techniques[t]
+    }
+  }
+
+  var y_plot_layout = {
+      title : 'Y'
+  }
+
+  traces = []
+  for(trace_key in y_plot_traces){
+    traces.push(y_plot_traces[trace_key]);
+  }
+  Plotly.newPlot(y_plot, traces, y_plot_layout);
+
+  //Z PLOT
+  var z_plot = document.getElementById('z_plot');
+  var z_plot_data = {}
+  for(var t in techniques){
+    z_plot_data[techniques[t]] = {}
+    z_plot_data[techniques[t]]['z'] = []
+    z_plot_data[techniques[t]]['elapsed_time'] = []
+  }
+
+  var z_plot_traces = {}
+  for(var t in techniques){
+    z_plot_traces[techniques[t]] = {
+      x : [],
+      y : [],
+      name : techniques[t]
+    }
+  }
+
+  var z_plot_layout = {
+      title : 'Z'
+  }
+
+  traces = []
+  for(trace_key in z_plot_traces){
+    traces.push(z_plot_traces[trace_key]);
+  }
+  Plotly.newPlot(z_plot, traces, z_plot_layout);
+
 
 
   //UPDATES
@@ -214,10 +273,19 @@
       }*/
 
 
-      //UPDATE LOCATION PLOT DATA
       _location = loc['location']
+
+      //UPDATE X PLOT DATA
       x_plot_data[key].elapsed_time.push(data.timestamp)
       x_plot_data[key].x.push(_location['x'])
+
+      //UPDATE Y PLOT DATA
+      y_plot_data[key].elapsed_time.push(data.timestamp)
+      y_plot_data[key].y.push(_location['y'])
+
+      //UPDATE Z PLOT DATA
+      //x_plot_data[key].elapsed_time.push(data.timestamp)
+      //x_plot_data[key].z.push(_location['z'])
 
     }
 
@@ -229,6 +297,8 @@
     new_distance_traces = []
     new_location_traces = []
     new_x_traces = []
+    new_y_traces = []
+    new_z_traces = []
     //UPDATE DISTANCE PLOT
     for(var trace_key in distance_plot_traces){
       distance_plot_traces[trace_key].y = distance_plot_data[selected_beacon][trace_key].distance
@@ -245,10 +315,21 @@
       x_plot_traces[trace_key].y = x_plot_data[trace_key].x
       x_plot_traces[trace_key].x = x_plot_data[trace_key].elapsed_time
       new_x_traces.push(x_plot_traces[trace_key]);
+
+      //UPDATE Y PLOT
+      y_plot_traces[trace_key].y = y_plot_data[trace_key].y
+      y_plot_traces[trace_key].x = y_plot_data[trace_key].elapsed_time
+      new_y_traces.push(y_plot_traces[trace_key]);
+
+      //UPDATE Z PLOT
+      //x_plot_traces[trace_key].y = x_plot_data[trace_key].x
+      //x_plot_traces[trace_key].x = x_plot_data[trace_key].elapsed_time
+      //new_x_traces.push(x_plot_traces[trace_key]);
     }
     Plotly.newPlot(distance_plot, new_distance_traces, distance_plot_layout);
     Plotly.newPlot(location_plot, new_location_traces, location_plot_layout);
     Plotly.newPlot(x_plot, new_x_traces, x_plot_layout);
+    Plotly.newPlot(y_plot, new_y_traces, y_plot_layout);
   }
   //AJAX
   function update(){

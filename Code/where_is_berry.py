@@ -150,7 +150,7 @@ class WhereIsBerry:
                         print 'F', F
 
                         ######Q(k) - process noise covarinace matrix (static)
-                        phi = 0.01
+                        phi = 0.001
                         Q = np.zeros((2*n,2*n))
                         for i in range(1,2*n,2):
                             Q[i-1][i-1] = (delta_t ** 3)/3

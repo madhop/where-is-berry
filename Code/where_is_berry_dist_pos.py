@@ -179,10 +179,6 @@ class WhereIsBerry:
                             ##z
                             z[row_n][0] = m['rssi']
                             ##R
-                            '''if len(self.estimates_history[index]) > 0:
-                                var = np.var(np.array([self.estimates_history[index]]))
-                            else:
-                                var = 1'''
                             var = 0.5
                             meas_noise_var.append(var)
                             #H

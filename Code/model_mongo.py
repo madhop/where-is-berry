@@ -15,18 +15,18 @@ _id = 'uni_1'
 anc = ac.getAnchors()
 anchors = anc['anchors']
 anchor_id_keys = anc['idKeys']
-print 'ANCHORS:'
-print [anchors[a].getID() for a in anchors]
 
 #mongo
 mongo = MongoClient()
 db = mongo.fingerprinting   # db
 """
 'models' collection:
-'location': name of the location
-'anchors': dictionary of anchors:
-    key: anchor id
-    value: coordinates
+    'id': univocal for place and time
+    'location': description of the location
+    'anchors': dictionary of anchors:
+        key: anchor id
+        value: coordinates
+    'timestamp'
 """
 models = db.models  # collection of models of different rooms
 assert models.count({'id':_id}) < 1, "There already exist a model with this id: " + _id

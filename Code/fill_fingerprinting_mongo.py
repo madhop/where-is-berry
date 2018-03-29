@@ -20,14 +20,6 @@ anchor_id_keys = anc['idKeys']
 #mongo
 mongo = MongoClient()
 db = mongo.fingerprinting   # db
-#TODO THIS COMMENT
-"""
-'models' collection:
-'location': name of the location
-'anchors': dictionary of anchors:
-    key: anchor id
-    value: coordinates
-"""
 
 # collection of models of different rooms
 models = db.models

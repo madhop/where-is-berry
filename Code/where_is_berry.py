@@ -36,6 +36,7 @@ class WhereIsBerry:
         self.data_interval = 0 #1000
         self.min_diff_anchors_ratio = 0.75
         self.min_diff_anchors = 3 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        assert n >= self.min_diff_anchors, 'Not enough anchors: ' + str(n)
         self.alpha = 1.9 #0.9722921
         self.TxPower = -67.5
         self.decimal_approximation = 3
@@ -172,10 +173,6 @@ class WhereIsBerry:
                             ##z
                             z[row_n][0] = m['rssi']
                             ##R
-                            '''if len(self.estimates_history[index]) > 0:
-                                var = np.var(np.array([self.estimates_history[index]]))
-                            else:
-                                var = 1'''
                             var = 30
                             meas_noise_var.append(var)
                             #H
@@ -184,9 +181,9 @@ class WhereIsBerry:
 
                         print 'var', meas_noise_var
                         R = np.diag((meas_noise_var))
-                        print 'R', R
-                        print 'H', H
-                        print 'z', z
+                        print 'R\n', R
+                        print 'H\n', H
+                        print 'z\n', z
 
                         #compute kalman filtering
                         x = self.kalman.estimate(z, F, H, Q, R)

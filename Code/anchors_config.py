@@ -9,16 +9,22 @@ filePath = config['filePath']
 anchors = {'anchors_ids' : [], 'anchors' : {}}
 with open(filePath, 'rb') as f:
     anchorsreader = list(csv.reader(f, delimiter = ','))
-    index = anchorsreader[0].index('coordinates')
+    coordinates_index = anchorsreader[0].index('coordinates')
+    transmition_rate_index = anchorsreader[0].index('transmition_rate')
     for j in range(2, len(anchorsreader)):
         if len(anchorsreader[j]) > 0:
+
             _id = {}
-            for i in range(0,index):
+            for i in range(0,coordinates_index):
                 _id[anchorsreader[1][i]] = anchorsreader[j][i]
+
             coordinates = {}
-            for i in range(index, len(anchorsreader[0])):
+            for i in range(coordinates_index, transmition_rate_index):
                 coordinates[anchorsreader[1][i]] = float(anchorsreader[j][i])
-            anchor = a.Anchor(_id, coordinates)
+
+            tx_rate = anchorsreader[j][transmition_rate_index]
+
+            anchor = a.Anchor(_id, coordinates, tx_rate)
             anchor_id = anchor.getID()
             anchors['anchors'][anchor_id] = anchor
             anchors['anchors_ids'].append(anchor_id)
@@ -27,7 +33,8 @@ with open(filePath, 'rb') as f:
 anchors['idKeys'] = anchors['anchors'].itervalues().next().id.keys()
 
 for a in anchors['anchors']:
-    print anchors['anchors'][a].coordinates
+    print 'Anchors:'
+    print 'id:', anchors['anchors'][a].id, '; coords:', anchors['anchors'][a].coordinates
 
 def getAnchors():
     return anchors

@@ -8,9 +8,9 @@ import DAO
 import measure
 
 
-map_name = 'uni_1'  # must match with the id of a model
+map_name = 'test2'  # must match with the id of a model
 pi_pos = {'x':0.2,'y':0,'z':0}    #position of the device in the map
-min_data_per_anchor = 20
+data_per_anchor = 150
 
 #anchors
 anc = ac.getAnchors()
@@ -23,7 +23,7 @@ db = mongo.fingerprinting   # db
 
 # collection of models of different rooms
 models = db.models
-assert models.count({ 'id' : map_name }) == 1, "No model with this id: " + map_name
+#assert models.count({ 'id' : map_name }) == 1, "No model with this id: " + map_name
 # collection where to insert the 'rssi's
 map = db[map_name]
 
@@ -35,16 +35,21 @@ for a in anchors:
 #get data form udp
 dao = DAO.UDP_DAO("localhost", 12346)
 
-#for each anchor store 'min_data_per_anchor' rssi
-while False in [counts[c] >= min_data_per_anchor for c in counts]:
+#for each anchor store 'data_per_anchor' rssi
+tuples = []
+while False in [counts[c] >= data_per_anchor for c in counts]:
     data = ast.literal_eval(dao.readData())
     _id = measure.get_id(data,anchor_id_keys)
     while not anchors.has_key(_id):    #go on only if the first is a good anchor
         data = ast.literal_eval(dao.readData())
         _id = measure.get_id(data, anchor_id_keys)
-    doc = {'id': _id, 'timestamp': data['timestamp'], 'rssi': data['rssi'], 'coords': pi_pos}
-    map.insert(doc)
-    counts[_id] += 1
+    if counts[_id] < data_per_anchor:
+        doc = {'id': _id, 'timestamp': data['timestamp'], 'rssi': data['rssi'], 'coords': pi_pos}
+        tuples.append(doc)
+        counts[_id] += 1
     print _id, '; count:', counts[_id]
+
+map.insert(tuples)
+
 
 print 'mongo'

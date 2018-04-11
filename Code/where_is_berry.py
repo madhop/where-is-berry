@@ -32,7 +32,7 @@ class WhereIsBerry:
         self.last_times = np.zeros((n,1))
         self.last_time = None
         #udp
-        self.dao = DAO.UDP_DAO("localhost", 12346) #Receive data (from nodered)
+        self.dao = DAO.UDP_DAO("localhost", 12348) #Receive data (from nodered 12346, from simulation 12348) 
         self.data_interval = -1000 #1000
         self.min_diff_anchors_ratio = 0.75
         self.min_diff_anchors = 3 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)

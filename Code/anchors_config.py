@@ -10,7 +10,7 @@ anchors = {'anchors_ids' : [], 'anchors' : {}}
 with open(filePath, 'rb') as f:
     anchorsreader = list(csv.reader(f, delimiter = ','))
     coordinates_index = anchorsreader[0].index('coordinates')
-    transmition_rate_index = anchorsreader[0].index('transmition_rate')
+    transmission_rate_index = anchorsreader[0].index('transmission_rate')
     for j in range(2, len(anchorsreader)):
         if len(anchorsreader[j]) > 0:
 
@@ -19,10 +19,10 @@ with open(filePath, 'rb') as f:
                 _id[anchorsreader[1][i]] = anchorsreader[j][i]
 
             coordinates = {}
-            for i in range(coordinates_index, transmition_rate_index):
+            for i in range(coordinates_index, transmission_rate_index):
                 coordinates[anchorsreader[1][i]] = float(anchorsreader[j][i])
 
-            tx_rate = anchorsreader[j][transmition_rate_index]
+            tx_rate = anchorsreader[j][transmission_rate_index]
 
             anchor = a.Anchor(_id, coordinates, tx_rate)
             anchor_id = anchor.getID()

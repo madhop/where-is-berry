@@ -8,8 +8,8 @@ import datetime
 import measure
 
 
-location = 'uni 2.10'
-_id = 'uni_1'
+location = 'test'
+_id = 'test2'
 
 #anchors
 anc = ac.getAnchors()

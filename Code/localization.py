@@ -20,7 +20,7 @@ class Localization:
             b = np.append(b, [[b_row]], axis=0)
         print "A", A
         print "b", b
-        ls = np.linalg.lstsq(2*A,b)
+        ls = np.linalg.lstsq(2*A, b, rcond = None)
         pos = {}
         i = 0
         for c in last['coordinates']:

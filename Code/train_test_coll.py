@@ -2,16 +2,19 @@ from pymongo import MongoClient
 import time
 
 class TrainTestCollections:
+    """
+    Given a path (sequence of coordinates)
+    it creates 2 new collections in mongodb:
+        - test: all measurements of the path
+        - train: what is not in test
+    """
     def __init__(self, path, map_name):
-        print 'CREATE TRRAIN AND TEST COLLECTIONS'
+        print 'CREATE TRAIN AND TEST COLLECTIONS'
         self.path = path
-        #self.test = []
         #get mongo collection
         mongo = MongoClient()
         db = mongo.fingerprinting   # db
         map = db[map_name]    # collection
-
-        #self.train = list(map.find())
 
         start = time.time()
         # drop old test and train collections

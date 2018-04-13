@@ -18,8 +18,8 @@ class Localization:
                 b_row -= ((d['coordinates'][c] ** 2) - (last['coordinates'][c] **2))
             A = np.append(A, [A_row], axis = 0)
             b = np.append(b, [[b_row]], axis=0)
-        print "A", A
-        print "b", b
+        #print "A", A
+        #print "b", b
         ls = np.linalg.lstsq(2*A, b, rcond = None)
         pos = {}
         i = 0

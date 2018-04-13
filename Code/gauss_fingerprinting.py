@@ -8,7 +8,7 @@ import matplotlib.mlab as mlab
 import plotly.plotly as py
 import math
 
-map_name = 'test2'
+map_name = 'test'
 
 #anchors
 anc = ac.getAnchors()
@@ -21,25 +21,33 @@ mongo = MongoClient()
 db = mongo.fingerprinting   # db
 map = db[map_name]    # collection
 
-l = []
-for a in anchors_ids:
-    print a
-    tuples = map.find({'id':a})
-    print 'size', map.count({'id':a})
-    row = [t['rssi'] for t in tuples]
+# for each coordinates build gaussian - mu and sigma
+coords = map.find().distinct('coords')
+gaussians = []  # list of gaussian distributions; 1 for each coordinate
+for c in coords:
+    l = []
+    for a in anchors_ids:
+        print a
+        tuples = map.find({'coords': {"y" : c['y'], "x" : c['x'], "z" : c['z']}, 'id': a})
+        row = [t['rssi'] for t in tuples]
+        l.append(row)
 
-    l.append(row)
-l = np.asarray(l)
-print 'l\n', l
+    l = np.asarray(l)
+    print 'l\n', np.shape(l)
 
-#GAUSSIAN MEAN AND COVARIANCE
-mu = np.mean(l, axis = 1)
-cov = np.cov(l)
+    #GAUSSIAN MEAN AND COVARIANCE
+    mu = np.mean(l, axis = 1)
+    cov = np.cov(l)
+    print 'mean:', mu
+    #print 'cov:', cov
+    gaussian = {'mu' : mu, 'cov': cov}
 
-print 'mean:', mu
-print 'cov:', cov
+    gaussians.append(gaussian)
 
-'''#PLOT GAUSSIAN
+
+
+'''
+#PLOT 1D GAUSSIAN
 mu1 = mu[0]
 mu2 = mu[1]
 sigma1 = math.sqrt(cov[0][0])

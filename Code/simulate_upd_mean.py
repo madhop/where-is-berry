@@ -1,10 +1,3 @@
-"""
-COMPUTE THE ERROR GIVEN BY WHERE_IS_BERRY
-- launch WHERE_IS_BERRY
-- send measure on UDP
-- WHERE_IS_BERRY will read this the measure from UDP and return it back
-- compare the result given by WHERE_IS_BERRY with the actual position
-"""
 from pymongo import MongoClient
 import where_is_berry as wib
 import DAO
@@ -41,6 +34,7 @@ db = mongo.fingerprinting   # db
 test_map = db['test']    # 'test' collection
 
 # for each position send rssi to WHERE_IS_BERRY
+#Kalman
 coords = test_map.find().distinct('coords')
 last_time = 0
 j = 0
@@ -76,7 +70,9 @@ while j < len(coords):
         last_time = ts
 
 
-'''# for each position compute rssi averages
+'''
+# for each position compute rssi averages
+# unfiltered
 coords = test_map.find().distinct('coords')
 last_time = 0
 j = 0

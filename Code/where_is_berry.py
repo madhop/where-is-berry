@@ -35,7 +35,7 @@ class WhereIsBerry:
         self.dao = DAO.UDP_DAO("localhost", 12348) #Receive data (from nodered 12346, from simulation 12348)
         self.data_interval = -1000 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 8 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.min_diff_anchors = 4 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         assert n >= self.min_diff_anchors, 'Not enough anchors: ' + str(n)
         self.alpha = 1.9 #0.9722921
         self.TxPower = -67.5

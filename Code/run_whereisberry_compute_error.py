@@ -16,6 +16,26 @@ berry = wib.WhereIsBerry()
 
 unfiltered_errors = []
 kalman_errors = []
+last_coords = ast.literal_eval(dao_coords.readData())
+print 'last_coords', last_coords
+# Kalman
+while True:
+    # read coords
+    coords = ast.literal_eval(dao_coords.readData())
+    print 'coords', coords
+    location = berry.whereIsBerry(True)
+
+    # if it is at the end of a position, compute the error
+    if coords != last_coords:
+        kalman_error = math.sqrt((estimation['x'] - coords['x']) ** 2 + (estimation['y'] - coords['y']) ** 2 + (estimation['z'] - coords['z']) ** 2)
+        kalman_errors.append(kalman_error)
+        print 'kalman_errors', kalman_errors
+        print 'kalman_errors', len(kalman_errors)
+        last_coords = coords
+
+    estimation = location['localizations']['localization_kalman']['location']
+'''
+# Trilateration unfiltered
 while True:
     # read coords
     coords = ast.literal_eval(dao_coords.readData())
@@ -32,4 +52,4 @@ while True:
     kalman_error = math.sqrt((estimation['x'] - coords['x']) ** 2 + (estimation['y'] - coords['y']) ** 2 + (estimation['z'] - coords['z']) ** 2)
     kalman_errors.append(kalman_error)
     print 'kalman_errors', kalman_errors
-    #dao.writeData(location)
+    #dao.writeData(location)'''

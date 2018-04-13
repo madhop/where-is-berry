@@ -51,23 +51,27 @@ while j < len(coords):
         tuples = list(test_map.find({'coords': {"y" : c['y'], "x" : c['x'], "z" : c['z']}}))
         data = {}
         i = 0
+        last_time2 = 0
         while i < len(tuples):
-            dao_coords.writeData(c)
-            time.sleep(0.1)
-            _id = split_id(tuples[i]['id'])
-            major = _id[0]
-            uuid = _id[1]
-            minor = _id[2]
-            timestamp = time.time()/1000
-            data['major'] = major
-            data['uuid'] = uuid
-            data['minor'] = minor
-            data['timestamp'] = timestamp
-            rssi = tuples[i]['rssi']
-            data['rssi'] = rssi
-            dao_test.writeData(data)
-            print 'i', i
-            i += 1
+            ts2 = time.time()
+            if ts2 - last_time2 >= 0.1:
+                dao_coords.writeData(c)
+                time.sleep(0.1)
+                _id = split_id(tuples[i]['id'])
+                major = _id[0]
+                uuid = _id[1]
+                minor = _id[2]
+                timestamp = time.time()/1000
+                data['major'] = major
+                data['uuid'] = uuid
+                data['minor'] = minor
+                data['timestamp'] = timestamp
+                rssi = tuples[i]['rssi']
+                data['rssi'] = rssi
+                dao_test.writeData(data)
+                print 'i', i
+                i += 1
+                last_time2 = ts2
         j += 1
         last_time = ts
 

@@ -17,7 +17,6 @@ berry = wib.WhereIsBerry()
 unfiltered_errors = []
 kalman_errors = []
 last_coords = ast.literal_eval(dao_coords.readData())
-print 'last_coords', last_coords
 # Kalman
 while True:
     # read coords

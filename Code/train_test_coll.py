@@ -10,6 +10,8 @@ class TrainTestCollections:
     """
     def __init__(self, path, map_name):
         print 'CREATE TRAIN AND TEST COLLECTIONS'
+        train_map_name = 'train'
+        test_map_name = 'test'
         self.path = path
         #get mongo collection
         mongo = MongoClient()
@@ -18,8 +20,8 @@ class TrainTestCollections:
 
         start = time.time()
         # drop old test and train collections
-        db['test'].drop()
-        db['train'].drop()
+        db[train_map_name].drop()
+        db[test_map_name].drop()
 
         # copy the whole map in train
         map.aggregate([{"$out":'train'}])
@@ -27,8 +29,8 @@ class TrainTestCollections:
         # for each position in path insert in test and delete from train
         for p in path:
             tuples = map.find({'coords': {"y" : p['y'], "x" : p['x'], "z" : p['z']}})
-            db['test'].insert(tuples)
-            db['train'].remove({'coords': {"y" : p['y'], "x" : p['x'], "z" : p['z']}})
+            db[test_map_name].insert(tuples)
+            db[train_map_name].remove({'coords': {"y" : p['y'], "x" : p['x'], "z" : p['z']}})
 
         end = time.time()
         print 'It took', end - start, 's'

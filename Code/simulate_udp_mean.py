@@ -8,6 +8,8 @@ import numpy as np
 import ast
 import anchors_config as ac
 
+test_map_name = 'test'
+
 #anchors
 anc = ac.getAnchors()
 anchors = anc['anchors']
@@ -31,7 +33,7 @@ def split_id(_id): #TODO make it scalable
 #get mongo collection
 mongo = MongoClient()
 db = mongo.fingerprinting   # db
-test_map = db['test']    # 'test' collection
+test_map = db[test_map_name]    # 'test' collection
 
 # for each position send rssi to WHERE_IS_BERRY
 #Kalman

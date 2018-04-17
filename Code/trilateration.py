@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-class Localization:
+class Trilateration:
     def __init__(self):
         pass
 
@@ -27,6 +27,3 @@ class Localization:
             pos[c] = ls[0][i][0]
             i += 1
         return pos
-
-    def fingerprinting(self):
-        pass

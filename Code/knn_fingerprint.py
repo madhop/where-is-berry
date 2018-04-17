@@ -28,7 +28,7 @@ db = mongo.fingerprinting   # db
 train_map = db[train_map_name]    # train collection
 test_map = db[test_map_name]    # test collection
 
-# for each train coordinates compute avg rssi from each anchor
+# for each train coordinates compute rssi avg from each anchor
 coords = train_map.find().distinct('coords')
 rssi_means = []  # list of averages; 1 for each coordinate
 i = 0

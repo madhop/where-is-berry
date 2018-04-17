@@ -6,7 +6,7 @@ from decimal import Decimal
 import random
 import anchor as a
 import anchors_config as ac
-import localization
+import trilateration
 import kalman
 import DAO
 import ast
@@ -14,8 +14,8 @@ import measure
 import time
 
 class WhereIsBerry:
-    def __init__(self):
-        self.localization = localization.Localization()
+    def __init__(self, udp_port):
+        self.trilateration = trilateration.Trilateration()
         self.start = time.time()
         #anchors
         anc = ac.getAnchors()
@@ -32,14 +32,16 @@ class WhereIsBerry:
         self.last_times = np.zeros((n,1))
         self.last_time = None
         #udp
-        self.dao = DAO.UDP_DAO("localhost", 12348) #Receive data (from nodered 12346, from simulation 12348)
+        self.dao = DAO.UDP_DAO("localhost", udp_port) #Receive data (from nodered 12346, from simulation 12348)
         self.data_interval = -1000 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 4 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.min_diff_anchors = 3 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         assert n >= self.min_diff_anchors, 'Not enough anchors: ' + str(n)
+        # model
         self.alpha = 1.9 #0.9722921
         self.TxPower = -67.5
         self.decimal_approximation = 3
+
         self.batch_size = 1 #if 0: batch_size = len(measures) else batch_size = self.batch_size
         self.techniques = ['localization_kalman', 'localization_unfiltered']
 
@@ -120,7 +122,7 @@ class WhereIsBerry:
         for t in self.techniques:
             measures = []
             if t == 'localization_kalman':
-                #print 'FILTRO'
+                print 'FILTRO'
                 meas_batch = min(self.batch_size, len(unfiltered))
                 if self.batch_size == 0:
                     meas_batch = len(unfiltered)
@@ -219,15 +221,15 @@ class WhereIsBerry:
 
             location = {}
             if self.min_diff_anchors >= 3:
-                location = self.localization.trilateration(message_measures)
+                location = self.trilateration.trilateration(message_measures)
 
             localization = {}
             localization['measures'] = message_measures
             localization['location'] = location
             localizations[t] = localization
+            # END FOR CYCLE ON TECHNIQUES
         message = {}
         message['localizations'] = localizations
         message['timestamp'] = time.time()
-            #END FOR T IN TECHNIQUES
-        #print 'BERRY E\' QUIIII!!!!!'
+        print 'BERRY E\' QUIIII!!!!!'
         return message

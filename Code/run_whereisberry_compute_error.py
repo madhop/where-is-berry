@@ -12,7 +12,7 @@ dao_coords = DAO.UDP_DAO("localhost", 12349)
 # write on UDP, read by html
 dao = DAO.UDP_DAO("localhost", 12347)
 
-berry = wib.WhereIsBerry()
+berry = wib.WhereIsBerry(12348)
 
 unfiltered_errors = []
 kalman_errors = []

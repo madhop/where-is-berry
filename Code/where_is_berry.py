@@ -7,6 +7,7 @@ import random
 import anchor as a
 import anchors_config as ac
 import trilateration
+import fingerprinting
 import kalman
 import DAO
 import ast
@@ -16,6 +17,7 @@ import time
 class WhereIsBerry:
     def __init__(self, udp_port):
         self.trilateration = trilateration.Trilateration()
+        self.fingerprinting = fingerprinting.Fingerprinting()
         self.start = time.time()
         #anchors
         anc = ac.getAnchors()
@@ -35,7 +37,7 @@ class WhereIsBerry:
         self.dao = DAO.UDP_DAO("localhost", udp_port) #Receive data (from nodered 12346, from simulation 12348)
         self.data_interval = -1000 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 3 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.min_diff_anchors = 8 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         assert n >= self.min_diff_anchors, 'Not enough anchors: ' + str(n)
         # model
         self.alpha = 1.9 #0.9722921
@@ -43,7 +45,7 @@ class WhereIsBerry:
         self.decimal_approximation = 3
 
         self.batch_size = 1 #if 0: batch_size = len(measures) else batch_size = self.batch_size
-        self.techniques = ['localization_kalman', 'localization_unfiltered']
+        self.techniques = ['localization_kalman', 'localization_unfiltered', 'localization_fingerprinting']
 
 
     def getData(self):
@@ -205,6 +207,22 @@ class WhereIsBerry:
                 #END IF FILTERED
             elif t == 'localization_unfiltered':
                 measures = unfiltered
+            elif t == 'localization_fingerprinting':
+                d = {}
+                for un in unfiltered:
+                    d[un['id']] = un
+                #measures = [d[l] for l in d]
+                measures = []
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:1'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:2'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:4'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:5'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:7'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:8'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:9'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:10'])
+
+
 
             #COMMON PART FOR ALL TECHNIQUES
             message_measures = []
@@ -220,8 +238,10 @@ class WhereIsBerry:
                 message_measures.append(measure)
 
             location = {}
-            if self.min_diff_anchors >= 3:
+            if self.min_diff_anchors >= 3 and t != 'localization_fingerprinting':
                 location = self.trilateration.trilateration(message_measures)
+            elif t == 'localization_fingerprinting':
+                location = self.fingerprinting.knn(message_measures)
 
             localization = {}
             localization['measures'] = message_measures

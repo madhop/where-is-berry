@@ -36,7 +36,7 @@ db = mongo.fingerprinting   # db
 test_map = db[test_map_name]    # 'test' collection
 
 # for each position send rssi to WHERE_IS_BERRY
-#Kalman
+# Kalman / Fingerprinting
 coords = test_map.find().distinct('coords')
 last_time = 0
 j = 0

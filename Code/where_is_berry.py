@@ -6,7 +6,8 @@ from decimal import Decimal
 import random
 import anchor as a
 import anchors_config as ac
-import localization
+import trilateration
+import fingerprinting
 import kalman
 import DAO
 import ast
@@ -14,8 +15,9 @@ import measure
 import time
 
 class WhereIsBerry:
-    def __init__(self):
-        self.localization = localization.Localization()
+    def __init__(self, udp_port):
+        self.trilateration = trilateration.Trilateration()
+        self.fingerprinting = fingerprinting.Fingerprinting()
         self.start = time.time()
         #anchors
         anc = ac.getAnchors()
@@ -25,23 +27,25 @@ class WhereIsBerry:
         #kalman
         self.history_length = 100
         n = len(self.anchors)
-        x0 = np.array([[0.5], [0]]*n)#np.zeros((n*2,1))
+        x0 = np.array([[-50], [0]]*n)#np.zeros((n*2,1))
         P0 = np.diag([20]*(2*n))#np.zeros((2*n,2*n))
         self.kalman = kalman.Kalman(x0, P0)
         self.estimates_history = [[] for i in range(0,(len(self.anchors)))]   #inizialization as list of empty lists (as many lists as the number of anchors)
         self.last_times = np.zeros((n,1))
         self.last_time = None
         #udp
-        self.dao = DAO.UDP_DAO("localhost", 12348) #Receive data (from nodered 12346, from simulation 12348) 
+        self.dao = DAO.UDP_DAO("localhost", udp_port) #Receive data (from nodered 12346, from simulation 12348)
         self.data_interval = -1000 #1000
         self.min_diff_anchors_ratio = 0.75
-        self.min_diff_anchors = 3 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
+        self.min_diff_anchors = 8 #math.ceil(len(self.anchors)*self.min_diff_anchors_ratio)
         assert n >= self.min_diff_anchors, 'Not enough anchors: ' + str(n)
+        # model
         self.alpha = 1.9 #0.9722921
         self.TxPower = -67.5
         self.decimal_approximation = 3
+
         self.batch_size = 1 #if 0: batch_size = len(measures) else batch_size = self.batch_size
-        self.techniques = ['localization_kalman', 'localization_unfiltered']
+        self.techniques = ['localization_kalman', 'localization_unfiltered', 'localization_fingerprinting']
 
 
     def getData(self):
@@ -86,7 +90,7 @@ class WhereIsBerry:
                 for k in self.anchor_id_keys:
                     del data[k]
                 measures_batch.append(data)
-        print 'measures_batch: ', measures_batch
+        #print 'measures_batch: ', measures_batch
         return measures_batch
 
     def updateHistory(self, measures):
@@ -114,7 +118,7 @@ class WhereIsBerry:
 
     def whereIsBerry(self, filtered):
         unfiltered = self.getMeasures()
-        print 'unfiltered', unfiltered
+        #print 'unfiltered', unfiltered
 
         localizations = {}
         for t in self.techniques:
@@ -129,7 +133,7 @@ class WhereIsBerry:
                     batch = []
                     batch.append(unfiltered[j:j+meas_batch])
                     for unfiltered_batch in batch:
-                        print unfiltered_batch
+                        #print unfiltered_batch
                         n = len(self.anchors)
                         batch_size = len(unfiltered_batch)
 
@@ -140,15 +144,15 @@ class WhereIsBerry:
 
                         delta_t = (now - self.last_time)/1000.0
                         delta_t_list = [delta_t]*(2*n)
-                        print 'now', now
-                        print 'self.last_time', self.last_time
-                        print 'delta_t', delta_t
+                        #print 'now', now
+                        #print 'self.last_time', self.last_time
+                        #print 'delta_t', delta_t
                         F = np.zeros((2*n,2*n))
                         for i in range(1,2*n,2):
                             F[i-1][i-1] = 1
                             F[i-1][i] = delta_t_list[i]
                             F[i][i] = 1
-                        print 'F', F
+                        #print 'F', F
 
                         ######Q(k) - process noise covarinace matrix (static)
                         phi = 0.001
@@ -159,7 +163,7 @@ class WhereIsBerry:
                             Q[i][i-1] = (delta_t ** 2)/2
                             Q[i][i] = delta_t
                         Q = Q * phi
-                        print 'Q', Q
+                        #print 'Q', Q
 
                         ######z(k) - measurement vector (dynamic)
                         z = np.empty((batch_size,1))
@@ -179,15 +183,15 @@ class WhereIsBerry:
                             H[row_n][(2*index)] = 1
                             row_n += 1
 
-                        print 'var', meas_noise_var
+                        #print 'var', meas_noise_var
                         R = np.diag((meas_noise_var))
-                        print 'R\n', R
-                        print 'H\n', H
-                        print 'z\n', z
+                        #print 'R\n', R
+                        #print 'H\n', H
+                        #print 'z\n', z
 
                         #compute kalman filtering
                         x = self.kalman.estimate(z, F, H, Q, R)
-                        print 'X FILTRATO\n', x
+                        #print 'X FILTRATO\n', x
                         #transform Kalman state in measures
                         for state in range(0,len(x), 2):
                             m = {}
@@ -203,6 +207,22 @@ class WhereIsBerry:
                 #END IF FILTERED
             elif t == 'localization_unfiltered':
                 measures = unfiltered
+            elif t == 'localization_fingerprinting':
+                d = {}
+                for un in unfiltered:
+                    d[un['id']] = un
+                #measures = [d[l] for l in d]
+                measures = []
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:1'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:2'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:4'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:5'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:7'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:8'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:9'])
+                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:10'])
+
+
 
             #COMMON PART FOR ALL TECHNIQUES
             message_measures = []
@@ -218,16 +238,18 @@ class WhereIsBerry:
                 message_measures.append(measure)
 
             location = {}
-            if self.min_diff_anchors >= 3:
-                location = self.localization.trilateration(message_measures)
+            if self.min_diff_anchors >= 3 and t != 'localization_fingerprinting':
+                location = self.trilateration.trilateration(message_measures)
+            elif t == 'localization_fingerprinting':
+                location = self.fingerprinting.knn(message_measures)
 
             localization = {}
             localization['measures'] = message_measures
             localization['location'] = location
             localizations[t] = localization
+            # END FOR CYCLE ON TECHNIQUES
         message = {}
         message['localizations'] = localizations
         message['timestamp'] = time.time()
-            #END FOR T IN TECHNIQUES
         print 'BERRY E\' QUIIII!!!!!'
         return message

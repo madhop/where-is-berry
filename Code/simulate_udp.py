@@ -13,7 +13,7 @@ def split_id(_id): #TODO make it scalable
     i2 = _id.find(":", i1+1)
     uuid = _id[i1+1:i2]
     minor = _id[i2+1:]
-    return major, uuid, minor
+    return [major, uuid, minor]
 
 #get mongo collection
 mongo = MongoClient()
@@ -27,8 +27,11 @@ while True:
     for i in range(0,len(tuples)):
         data = {}
         ts = time.time()
-        if ts - last_time >= 0.1:
-            major, uuid, minor = split_id(tuples[i]['id'])
+        if ts - last_time >= 0.1:   #TODO sistema con un while
+            _id = split_id(tuples[i]['id'])
+            major = _id[0]
+            uuid = _id[1]
+            minor = _id[2]
             timestamp = time.time()/1000#tuples[i]['timestamp']
             rssi = tuples[i]['rssi']
             data['major'] = major

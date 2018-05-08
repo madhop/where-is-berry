@@ -19,17 +19,17 @@ class Kalman:
         #PREDICTION STEP
         x_priori = F.dot(self.last_x_posteriori) + B.dot(u)   #x(k|k-1)
         P_priori = F.dot(self.last_P_posteriori).dot(F.T) + Q   #P(k|k-1) - state covariance matrix
-        print 'P_priori\n',P_priori
+        #print 'P_priori\n',P_priori
         #MEASUREMENT STEP
         y = z - H.dot(x_priori)    #y(k) - error vector
         S = H.dot(P_priori).dot(H.T) + R    #S(k) - innovation matrix
-        print 'S\n', S
+        #print 'S\n', S
         #UPDATE STATE
         K = P_priori.dot(H.T).dot(inv(S))#K = P_priori.dot(H.T).dot(inv(S))   #K(k) - Kalman gain
-        print 'K\n', K
+        #print 'K\n', K
         x_posteriori = x_priori + K.dot(y)  #x(k|k)
         P_posteriori = (np.eye(self.n*2) - K.dot(H)).dot(P_priori) #P(k|k)
-        print 'P_posteriori\n', P_posteriori
+        #print 'P_posteriori\n', P_posteriori
         self.last_x_posteriori = x_posteriori
         self.last_P_posteriori = P_posteriori
         return x_posteriori
@@ -45,15 +45,15 @@ def filter(data, phi, var):
 
     delta_t = 0 # (now - self.last_time)/1000.0
     delta_t_list = [delta_t]*(2*n)
-    print 'now', now
-    print 'self.last_time', self.last_time
-    print 'delta_t', delta_t
+    #print 'now', now
+    #print 'self.last_time', self.last_time
+    #print 'delta_t', delta_t
     F = np.zeros((2*n,2*n))
     for i in range(1,2*n,2):
         F[i-1][i-1] = 1
         F[i-1][i] = delta_t_list[i]
         F[i][i] = 1
-    print 'F', F
+    #print 'F', F
 
     ######Q(k) - process noise covarinace matrix (static)
     phi = 1
@@ -64,7 +64,7 @@ def filter(data, phi, var):
         Q[i][i-1] = (delta_t ** 2)/2
         Q[i][i] = delta_t
     Q = Q * phi
-    print 'Q', Q
+    #print 'Q', Q
 
     ######z(k) - measurement vector (dynamic)
     z = np.empty((batch_size,1))
@@ -84,11 +84,11 @@ def filter(data, phi, var):
         H[row_n][(2*index)] = 1
         row_n += 1
 
-    print 'var', meas_noise_var
+    #print 'var', meas_noise_var
     R = np.diag((meas_noise_var))
-    print 'R', R
-    print 'H', H
-    print 'z', z
+    #print 'R', R
+    #print 'H', H
+    #print 'z', z
 
     #compute kalman filtering
     x = self.kalman_dist.estimate(z, F, H, Q, R)

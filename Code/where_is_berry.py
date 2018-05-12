@@ -45,7 +45,11 @@ class WhereIsBerry:
         self.decimal_approximation = 3
 
         self.batch_size = 1 #if 0: batch_size = len(measures) else batch_size = self.batch_size
-        self.techniques = ['localization_kalman', 'localization_unfiltered', 'localization_fingerprinting']
+        self.techniques = ['localization_trilateration_kalman',
+                            'localization_trilateration_unfiltered',
+                            'localization_fingerprinting_kalman',
+                            'localization_fingerprinting_unfiltered']
+        #self.techniques = ['localization_kalman', 'localization_unfiltered', 'localization_fingerprinting']
 
 
     def getData(self):
@@ -116,113 +120,122 @@ class WhereIsBerry:
             index = self.anchors_ids.index(m['id'])
             self.last_times[index][0] = m['timestamp']
 
+    def fingerprinting_measures(self, measurements):
+        # for each anchor take only the last measure
+        d = {}
+        for un in measurements:
+            d[un['id']] = un
+        #measures = [d[l] for l in d]
+        measures = []
+        measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:1'])
+        measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:2'])
+        measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:5'])
+        measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:7'])
+        measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:4'])
+        measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:8'])
+        measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:9'])
+        measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:10'])
+        return measures
+
     def whereIsBerry(self, filtered):
         unfiltered = self.getMeasures()
-        #print 'unfiltered', unfiltered
+
+        filtered_measures = []
+        print 'FILTRO'
+        meas_batch = min(self.batch_size, len(unfiltered))
+        if self.batch_size == 0:
+            meas_batch = len(unfiltered)
+
+        for j in range(0,len(unfiltered), meas_batch):
+            batch = []
+            batch.append(unfiltered[j:j+meas_batch])
+            for unfiltered_batch in batch:
+                #print unfiltered_batch
+                n = len(self.anchors)
+                batch_size = len(unfiltered_batch)
+
+                ######F(k) - state transition model (static)
+                now = unfiltered_batch[-1]['timestamp']# np.mean([m['timestamp'] for m in measures])
+                if(self.last_time == None):
+                    self.last_time = now
+
+                delta_t = (now - self.last_time)/1000.0
+                delta_t_list = [delta_t]*(2*n)
+                #print 'now', now
+                #print 'self.last_time', self.last_time
+                #print 'delta_t', delta_t
+                F = np.zeros((2*n,2*n))
+                for i in range(1,2*n,2):
+                    F[i-1][i-1] = 1
+                    F[i-1][i] = delta_t_list[i]
+                    F[i][i] = 1
+                #print 'F', F
+
+                ######Q(k) - process noise covarinace matrix (static)
+                phi = 0.001
+                Q = np.zeros((2*n,2*n))
+                for i in range(1,2*n,2):
+                    Q[i-1][i-1] = (delta_t ** 3)/3
+                    Q[i-1][i] = (delta_t ** 2)/2
+                    Q[i][i-1] = (delta_t ** 2)/2
+                    Q[i][i] = delta_t
+                Q = Q * phi
+                #print 'Q', Q
+
+                ######z(k) - measurement vector (dynamic)
+                z = np.empty((batch_size,1))
+                ######R(k) - measurement noise matrix (dynamic)
+                meas_noise_var = []
+                ######H(k) - observation model (dynamic)
+                H = np.zeros((batch_size,2*n))
+                row_n = 0
+                for m in unfiltered_batch:
+                    index = self.anchors_ids.index(m['id'])
+                    ##z
+                    z[row_n][0] = m['rssi']
+                    ##R
+                    var = 30
+                    meas_noise_var.append(var)
+                    #H
+                    H[row_n][(2*index)] = 1
+                    row_n += 1
+
+                #print 'var', meas_noise_var
+                R = np.diag((meas_noise_var))
+                #print 'R\n', R
+                #print 'H\n', H
+                #print 'z\n', z
+
+                #compute kalman filtering
+                x = self.kalman.estimate(z, F, H, Q, R)
+                #print 'X FILTRATO\n', x
+                #transform Kalman state in measures
+                for state in range(0,len(x), 2):
+                    m = {}
+                    m['id'] = self.anchors_ids[state/2]
+                    m['rssi'] = x[state][0]
+                    m['timestamp'] = now
+                    filtered_measures.append(m)
+            self.last_time = now
+            #END KALMAN FILTERING
 
         localizations = {}
         for t in self.techniques:
-            measures = []
-            if t == 'localization_kalman':
-                print 'FILTRO'
-                meas_batch = min(self.batch_size, len(unfiltered))
-                if self.batch_size == 0:
-                    meas_batch = len(unfiltered)
-
-                for j in range(0,len(unfiltered), meas_batch):
-                    batch = []
-                    batch.append(unfiltered[j:j+meas_batch])
-                    for unfiltered_batch in batch:
-                        #print unfiltered_batch
-                        n = len(self.anchors)
-                        batch_size = len(unfiltered_batch)
-
-                        ######F(k) - state transition model (static)
-                        now = unfiltered_batch[-1]['timestamp']# np.mean([m['timestamp'] for m in measures])
-                        if(self.last_time == None):
-                            self.last_time = now
-
-                        delta_t = (now - self.last_time)/1000.0
-                        delta_t_list = [delta_t]*(2*n)
-                        #print 'now', now
-                        #print 'self.last_time', self.last_time
-                        #print 'delta_t', delta_t
-                        F = np.zeros((2*n,2*n))
-                        for i in range(1,2*n,2):
-                            F[i-1][i-1] = 1
-                            F[i-1][i] = delta_t_list[i]
-                            F[i][i] = 1
-                        #print 'F', F
-
-                        ######Q(k) - process noise covarinace matrix (static)
-                        phi = 0.001
-                        Q = np.zeros((2*n,2*n))
-                        for i in range(1,2*n,2):
-                            Q[i-1][i-1] = (delta_t ** 3)/3
-                            Q[i-1][i] = (delta_t ** 2)/2
-                            Q[i][i-1] = (delta_t ** 2)/2
-                            Q[i][i] = delta_t
-                        Q = Q * phi
-                        #print 'Q', Q
-
-                        ######z(k) - measurement vector (dynamic)
-                        z = np.empty((batch_size,1))
-                        ######R(k) - measurement noise matrix (dynamic)
-                        meas_noise_var = []
-                        ######H(k) - observation model (dynamic)
-                        H = np.zeros((batch_size,2*n))
-                        row_n = 0
-                        for m in unfiltered_batch:
-                            index = self.anchors_ids.index(m['id'])
-                            ##z
-                            z[row_n][0] = m['rssi']
-                            ##R
-                            var = 30
-                            meas_noise_var.append(var)
-                            #H
-                            H[row_n][(2*index)] = 1
-                            row_n += 1
-
-                        #print 'var', meas_noise_var
-                        R = np.diag((meas_noise_var))
-                        #print 'R\n', R
-                        #print 'H\n', H
-                        #print 'z\n', z
-
-                        #compute kalman filtering
-                        x = self.kalman.estimate(z, F, H, Q, R)
-                        #print 'X FILTRATO\n', x
-                        #transform Kalman state in measures
-                        for state in range(0,len(x), 2):
-                            m = {}
-                            m['id'] = self.anchors_ids[state/2]
-                            m['rssi'] = x[state][0]
-                            m['timestamp'] = now
-                            measures.append(m)
-
-                    #self.updateHistory(filtered_measures)
-                    #self.updateTimes(measures)
-                    self.last_time = now
-
-                #END IF FILTERED
-            elif t == 'localization_unfiltered':
+            '''
+            TECHNIQUES:
+            ['localization_trilateration_kalman',
+            'localization_trilateration_unfiltered',
+            'localization_fingerprinting_kalman',
+            'localization_fingerprinting_unfiltered']
+            '''
+            if t == 'localization_trilateration_kalman':
+                measures = filtered_measures
+            elif t == 'localization_trilateration_unfiltered':
                 measures = unfiltered
-            elif t == 'localization_fingerprinting':
-                d = {}
-                for un in unfiltered:
-                    d[un['id']] = un
-                #measures = [d[l] for l in d]
-                measures = []
-                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:1'])
-                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:2'])
-                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:4'])
-                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:5'])
-                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:7'])
-                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:8'])
-                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:9'])
-                measures.append(d['1:b9407f30f5f8466eaff925556b57fe6d:10'])
-
-
+            elif t == 'localization_fingerprinting_kalman':
+                measures = self.fingerprinting_measures(filtered_measures)
+            elif t == 'localization_fingerprinting_unfiltered':
+                measures = self.fingerprinting_measures(unfiltered)
 
             #COMMON PART FOR ALL TECHNIQUES
             message_measures = []
@@ -236,19 +249,24 @@ class WhereIsBerry:
                 measure['elapsed_time'] = m['timestamp']/1000.0 - self.start # sec
                 measure['dist'] = self.computeDist(m['rssi'])
                 message_measures.append(measure)
+            # END COMMON PART
 
-            location = {}
-            if self.min_diff_anchors >= 3 and t != 'localization_fingerprinting':
+            if t == 'localization_trilateration_kalman':
                 location = self.trilateration.trilateration(message_measures)
-            elif t == 'localization_fingerprinting':
+            elif t == 'localization_trilateration_unfiltered':
+                location = self.trilateration.trilateration(message_measures)
+            elif t == 'localization_fingerprinting_kalman':
+                location = self.fingerprinting.knn(message_measures)
+            elif t == 'localization_fingerprinting_unfiltered':
                 location = self.fingerprinting.knn(message_measures)
 
             localization = {}
-            localization['measures'] = message_measures
+            #localization['measures'] = message_measures
             localization['location'] = location
             localizations[t] = localization
             # END FOR CYCLE ON TECHNIQUES
         message = {}
+        #message['unfiltered_measures'] = unfiltered
         message['localizations'] = localizations
         message['timestamp'] = time.time()
         print 'BERRY E\' QUIIII!!!!!'

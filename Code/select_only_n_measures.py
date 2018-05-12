@@ -6,12 +6,12 @@ import ast
 import random
 
 # number of element that you want in the db
-n = 150
+n = 30#150
 
 #get mongo collection
 mongo = MongoClient()
 db = mongo.fingerprinting   # db
-map = db['luca_01']    # 'test' collection
+map = db['luca_01_30meas']  # 'luca_01'  # 'test' collection
 
 
 coords = map.find().distinct('coords')

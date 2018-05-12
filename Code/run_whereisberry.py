@@ -9,5 +9,6 @@ berry = wib.WhereIsBerry(12348) #(from nodered 12346, from simulation 12348)
 
 while True:
     location = berry.whereIsBerry(filtered = True)
+    print '***** tel chi la location'
     pprint.pprint(location)
     dao.writeData(location)

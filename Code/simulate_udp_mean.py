@@ -8,7 +8,7 @@ import numpy as np
 import ast
 import anchors_config as ac
 
-test_map_name = 'test'
+test_map_name = 'test_30_random'#'test'
 
 #anchors
 anc = ac.getAnchors()
@@ -16,7 +16,7 @@ anchors = anc['anchors']
 anchors_ids = anc['anchors_ids']
 anchor_id_keys = anc['idKeys']
 
-# write actual coordinates on UDP_DAP
+# write actual coordinates on UDP_DAO
 dao_coords = DAO.UDP_DAO("localhost", 12349)
 
 # write on UDP to send to WHERE_IS_BERRY the test set
@@ -41,7 +41,10 @@ coords = test_map.find().distinct('coords')
 last_time = 0
 j = 0
 while j < len(coords):
+    print '################################\n################################\n################################\n################################'
     c = coords[j]
+    c['message'] = 1
+    print c
     ts = time.time()
     if ts - last_time >= 0.5:
         tuples = list(test_map.find({'coords': {"y" : c['y'], "x" : c['x'], "z" : c['z']}}))
@@ -64,10 +67,15 @@ while j < len(coords):
                 data['timestamp'] = timestamp
                 rssi = tuples[i]['rssi']
                 data['rssi'] = rssi
-                dao_test.writeData(data)
-                print 'i', i
-                i += 1
+                data['message'] = 1
+                #if it is the last measure of the last coordinate, send 0 as message
+                if  i == len(tuples)-3 and j == len(coords)-1: #i == 23 and j == 1:
+                    data['message'] = 0
+                print 'i', i, 'j', j, data
                 last_time2 = ts2
+                dao_test.writeData(data)
+                i += 1
+        #dao_coords.writeData(c)
         j += 1
         last_time = ts
 

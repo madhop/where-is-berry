@@ -29,7 +29,6 @@ class Fingerprinting:
         # END __init__
 
     def knn(self, data):
-        print '**************knn'
 
         wiwtbp = [d['rssi'] for d in data]
         wiwtbp = np.asarray(wiwtbp)
@@ -62,5 +61,5 @@ class Fingerprinting:
                 for key in kn['coords']:
                     position_hat[key] = position_hat[key] + weight * kn['coords'][key]
 
-        print 'position_hat', position_hat
+        #print 'position_hat', position_hat
         return position_hat

@@ -72,10 +72,15 @@ class WhereIsBerry:
         return _id
 
     def getMeasures(self):
+        i = 0
         measures_batch = []
         data = self.getData()
-        ts_milli = time.time() * 1000.0
         _id = self.get_id(data)
+        i += 1
+        print i, data
+        if data['message'] == 0:
+            return 0
+        ts_milli = time.time() * 1000.0
         while not self.anchors.has_key(_id):    #go on only if the first is a good anchor
             ts_milli = time.time() * 1000.0
             data = self.getData()
@@ -88,6 +93,10 @@ class WhereIsBerry:
         while self.count_n_diff_anchors(measures_batch) < self.min_diff_anchors:
             data = self.getData()
             _id = self.get_id(data)
+            i += 1
+            print i, data
+            if data['message'] == 0:
+                return 0
             if self.anchors.has_key(_id):
                 #change id
                 data['id'] = _id
@@ -139,6 +148,9 @@ class WhereIsBerry:
 
     def whereIsBerry(self, filtered):
         unfiltered = self.getMeasures()
+        if unfiltered == 0:
+            message = {'message' : 0}
+            return message
 
         filtered_measures = []
         print 'FILTRO'
@@ -194,7 +206,7 @@ class WhereIsBerry:
                     ##z
                     z[row_n][0] = m['rssi']
                     ##R
-                    var = 30
+                    var = 60
                     meas_noise_var.append(var)
                     #H
                     H[row_n][(2*index)] = 1
@@ -269,5 +281,7 @@ class WhereIsBerry:
         #message['unfiltered_measures'] = unfiltered
         message['localizations'] = localizations
         message['timestamp'] = time.time()
+        message['measures'] = unfiltered
+        message['message'] = 1
         print 'BERRY E\' QUIIII!!!!!'
         return message

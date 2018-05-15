@@ -1,0 +1,390 @@
+[
+    {
+        "id": "ee9e3256.bc4d1",
+        "type": "tab",
+        "label": "Localization",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "b5dcabf1.0c3938",
+        "type": "scanBeacon",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "beacon_uuid": "",
+        "beacon_major": "",
+        "beacon_minor": "",
+        "x": 504.3690185546875,
+        "y": 288.77386474609375,
+        "wires": [
+            [
+                "f0b7249e.e980f8",
+                "37704f6a.7c5e08"
+            ]
+        ]
+    },
+    {
+        "id": "709ed85d.f0f14",
+        "type": "udp out",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "addr": "localhost",
+        "iface": "",
+        "port": "12346",
+        "ipv": "udp4",
+        "outport": "",
+        "base64": false,
+        "multicast": "false",
+        "x": 872.1072998046875,
+        "y": 376.559814453125,
+        "wires": []
+    },
+    {
+        "id": "a2573899.8a05c",
+        "type": "debug",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 918.2916259765625,
+        "y": 513.0832824707031,
+        "wires": []
+    },
+    {
+        "id": "443d3eda.6c9ce",
+        "type": "json",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 752.708251953125,
+        "y": 511.1666259765625,
+        "wires": [
+            [
+                "a2573899.8a05c"
+            ]
+        ]
+    },
+    {
+        "id": "f0b7249e.e980f8",
+        "type": "function",
+        "z": "ee9e3256.bc4d1",
+        "name": "Add Timestamp and Filter",
+        "func": "var pay = JSON.parse(msg.payload)\nvar ts = new Date().getTime()\npay.timestamp = ts\nmsg.payload = JSON.stringify(pay)\n\nvar last_meas = context.global.get('last_measure')\nif(pay.uuid != last_meas.uuid || pay.major != last_meas.major || pay.minor != last_meas.minor || (ts - last_meas.timestamp) >= 10 ){\n    msg.check = 1\n}else{\n    msg.check = 0\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 792.333251953125,
+        "y": 274.9166259765625,
+        "wires": [
+            [
+                "3fae6520.682fea"
+            ]
+        ]
+    },
+    {
+        "id": "3fae6520.682fea",
+        "type": "switch",
+        "z": "ee9e3256.bc4d1",
+        "name": "Check",
+        "property": "check",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "1",
+                "vt": "num"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 578.8331298828125,
+        "y": 392.4163818359375,
+        "wires": [
+            [
+                "7f4ae52a.370d2c"
+            ]
+        ]
+    },
+    {
+        "id": "7f4ae52a.370d2c",
+        "type": "function",
+        "z": "ee9e3256.bc4d1",
+        "name": "Update last_measure",
+        "func": "context.global.set('last_measure', JSON.parse(msg.payload))\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 507.208251953125,
+        "y": 487.1666259765625,
+        "wires": [
+            [
+                "709ed85d.f0f14",
+                "443d3eda.6c9ce"
+            ]
+        ]
+    },
+    {
+        "id": "55026b8a.63fa7c",
+        "type": "inject",
+        "z": "ee9e3256.bc4d1",
+        "name": "Start Beacon",
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 245,
+        "y": 328.5,
+        "wires": [
+            [
+                "b5dcabf1.0c3938"
+            ]
+        ]
+    },
+    {
+        "id": "46bd546c.3fbf8c",
+        "type": "inject",
+        "z": "ee9e3256.bc4d1",
+        "name": "Stop Beacon",
+        "topic": "",
+        "payload": "false",
+        "payloadType": "bool",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 243.78582763671875,
+        "y": 413.28582763671875,
+        "wires": [
+            [
+                "b5dcabf1.0c3938"
+            ]
+        ]
+    },
+    {
+        "id": "37704f6a.7c5e08",
+        "type": "debug",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 752.75,
+        "y": 188,
+        "wires": []
+    },
+    {
+        "id": "294c04f8.9f038c",
+        "type": "function",
+        "z": "ee9e3256.bc4d1",
+        "name": "Initialize State",
+        "func": "if (context.global.get(\"state\") === undefined){\n    context.global.set(\"state\",\"stopped\")\n}\nif (context.global.get(\"last_measure\") === undefined){\n    context.global.set(\"last_measure\", {'timestamp' : 0, 'uuid' : \"\", 'major' : undefined, 'minor' : undefined})\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 495,
+        "y": 206,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7ed482b6.4f352c",
+        "type": "inject",
+        "z": "ee9e3256.bc4d1",
+        "name": "Autostart",
+        "topic": "",
+        "payload": "true",
+        "payloadType": "bool",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": "0.0",
+        "x": 243,
+        "y": 256.5,
+        "wires": [
+            [
+                "294c04f8.9f038c",
+                "b5dcabf1.0c3938"
+            ]
+        ]
+    },
+    {
+        "id": "148ef31f.44d455",
+        "type": "http in",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "url": "/where-is-berry/getLocation",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 256.66668701171875,
+        "y": 1001.3333129882812,
+        "wires": [
+            [
+                "f1405bbd.08a97"
+            ]
+        ]
+    },
+    {
+        "id": "f1405bbd.08a97",
+        "type": "function",
+        "z": "ee9e3256.bc4d1",
+        "name": "Get Location",
+        "func": "msg.payload = context.global.get(\"location\")\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 507,
+        "y": 1002,
+        "wires": [
+            [
+                "2c5d8e20.a370b2",
+                "dd98bb65.31c268"
+            ]
+        ]
+    },
+    {
+        "id": "2c5d8e20.a370b2",
+        "type": "http response",
+        "z": "ee9e3256.bc4d1",
+        "name": "Http Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 823,
+        "y": 1002,
+        "wires": []
+    },
+    {
+        "id": "dd98bb65.31c268",
+        "type": "debug",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 821,
+        "y": 1070,
+        "wires": []
+    },
+    {
+        "id": "ed212b42.30e7f8",
+        "type": "udp in",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "iface": "",
+        "port": "12347",
+        "ipv": "udp4",
+        "multicast": "false",
+        "group": "",
+        "datatype": "utf8",
+        "x": 177.666748046875,
+        "y": 642.333251953125,
+        "wires": [
+            [
+                "2c0dc0f.9e90b4"
+            ]
+        ]
+    },
+    {
+        "id": "2c0dc0f.9e90b4",
+        "type": "function",
+        "z": "ee9e3256.bc4d1",
+        "name": "Store Location",
+        "func": "function replaceAll(str, source, target) {\n  return str.split(source).join(target);\n}\ndata = msg.payload\ndata = replaceAll(data, \"\\'\", \"\\\"\")\ndata = JSON.parse(data)\ncontext.global.set(\"location\",data)\nmsg.payload = data\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 377.666748046875,
+        "y": 642.333251953125,
+        "wires": [
+            [
+                "8c31baf5.fed08"
+            ]
+        ]
+    },
+    {
+        "id": "8c31baf5.fed08",
+        "type": "debug",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "x": 587.666748046875,
+        "y": 642.333251953125,
+        "wires": []
+    },
+    {
+        "id": "337c7d5e.80158a",
+        "type": "http in",
+        "z": "ee9e3256.bc4d1",
+        "name": "",
+        "url": "/where-is-berry/localization",
+        "method": "get",
+        "upload": false,
+        "swaggerDoc": "",
+        "x": 252,
+        "y": 904,
+        "wires": [
+            [
+                "2d72c200.a667ce"
+            ]
+        ]
+    },
+    {
+        "id": "2aad2edf.1979e2",
+        "type": "http response",
+        "z": "ee9e3256.bc4d1",
+        "name": "Http Response",
+        "statusCode": "",
+        "headers": {},
+        "x": 917.6667175292969,
+        "y": 902.3334350585938,
+        "wires": []
+    },
+    {
+        "id": "c5c680b4.6a4568",
+        "type": "template",
+        "z": "ee9e3256.bc4d1",
+        "name": "Build response",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "handlebars",
+        "syntax": "mustache",
+        "template": "<head>\n    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>\n    <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js\"></script>\n    <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" crossorigin=\"anonymous\"></script>\n    <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" integrity=\"sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u\" crossorigin=\"anonymous\">\n    <!--<script src=\"/home/luca/where-is-berry/NodeRed/lib/plotly-latest.min.js\"></script>-->\n</head>\n<body>\n\n<div class=\"container\">\n  <div class=\"row\">\n    <div class=\"form-check form-check-inline\" id=\"beacons\"></div>\n    <div id=\"distance_plot\" style=\"width:600px;height:250px;\"></div>\n  </div>\n</div>\n\n\n<script>\n\n\n  for(i=0; i<10;i++){\n    beacon_n = i+1\n    var append_str = '<input class=\"form-check-input\" type=\"radio\" name=\"beacon\" id=\"'+i+'\">' +\n                      '<label class=\"form-check-label\" for=\"'+i+'\">Beacon '+beacon_n+'</label>'\n    //$('#beacons').append('<div class=\"col\"><input id=\"'+i+'\" name=\"beacon\" type=\"radio\"> Beacon '+beacon_n+'</div>')\n    $('#beacons').append(append_str)\n  }\n\n\tvar distance_plot = document.getElementById('distance_plot');\n\n  var distance_plot_data = {}\n  distance_plot_data[10] = {}\n  distance_plot_data[10]['elapsed_time'] = []\n  distance_plot_data[10]['filtered_data'] = []\n  distance_plot_data[10]['unfiltered_data'] = []\n\n  var filtered_trace = {\n    x : [],\n    y : [],\n    name : 'Beacon 10 filtered'\n  }\n  var unfiltered_trace = {\n    x : [],\n    y : [],\n    name : 'Beacon 10 unfiltered'\n  }\n\n  var layout = {\n      autosize : false,\n      heigth : 500,\n      width : 800\n  }\n\n  Plotly.newPlot(distance_plot, [], layout);\n  Plotly.addTraces(distance_plot,[filtered_trace, unfiltered_trace]);\n\n  function update(){\n      $.getJSON( \"http://{{_host}}/where-is-berry/getLocation\", function(response){updatePlot(response)});\n  }\n\n\n\n  function updatePlot(data){\n    //update distance plot\n    for (i = 0 ; i < data.measures.length; i++){\n      if(data.measures[i]['minor'] == 10 && data.measures[i].elapsed_time != distance_plot_data[10].elapsed_time[distance_plot_data[10].elapsed_time.length-1]){\n          distance_plot_data[10].elapsed_time.push(data.measures[i].elapsed_time)\n          distance_plot_data[10].filtered_data.push(data.estimates.distances.filtered)\n          distance_plot_data[10].unfiltered_data.push(data.estimates.distances.unfiltered)\n          unfiltered_trace.y = distance_plot_data[10].unfiltered_data\n          filtered_trace.y = distance_plot_data[10].filtered_data\n          unfiltered_trace.x = distance_plot_data[10].elapsed_time\n          filtered_trace.x = distance_plot_data[10].elapsed_time\n          Plotly.deleteTraces(distance_plot, [0,1]);\n          Plotly.addTraces(distance_plot,[filtered_trace, unfiltered_trace]);\n      }\n    }\n  }\n\n  //change beacon\n  $(\"#beacons\").click(function(event){\n    console.log(event.target.id);\n  });\n\n  //ajax trigger\n  setInterval(function(){update();},200);\n</script>\n</body>\n",
+        "output": "str",
+        "x": 704.8333435058594,
+        "y": 903.8333740234375,
+        "wires": [
+            [
+                "2aad2edf.1979e2"
+            ]
+        ]
+    },
+    {
+        "id": "2d72c200.a667ce",
+        "type": "function",
+        "z": "ee9e3256.bc4d1",
+        "name": "Set ajax ip",
+        "func": "host = msg.req['headers']['host']\nmsg._host = host\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 510.6666564941406,
+        "y": 904.0001220703125,
+        "wires": [
+            [
+                "c5c680b4.6a4568"
+            ]
+        ]
+    }
+]

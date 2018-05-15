@@ -206,7 +206,7 @@ class WhereIsBerry:
                     ##z
                     z[row_n][0] = m['rssi']
                     ##R
-                    var = 30
+                    var = 60
                     meas_noise_var.append(var)
                     #H
                     H[row_n][(2*index)] = 1
@@ -281,6 +281,7 @@ class WhereIsBerry:
         #message['unfiltered_measures'] = unfiltered
         message['localizations'] = localizations
         message['timestamp'] = time.time()
+        message['measures'] = unfiltered
         message['message'] = 1
         print 'BERRY E\' QUIIII!!!!!'
         return message

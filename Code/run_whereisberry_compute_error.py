@@ -10,7 +10,7 @@ import math
 #get mongo collection
 mongo = MongoClient()
 db = mongo.fingerprinting   # db
-errors_mongo = db['errors_mongo']    # collection where we save the estimation errors
+errors_mongo = db['errors_mongo_2']    # collection where we save the estimation errors
 
 '''
 TECHNIQUES:

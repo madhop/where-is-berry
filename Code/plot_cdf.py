@@ -7,16 +7,18 @@ import numpy as np
 techniques = ['localization_trilateration_kalman',
                 'localization_trilateration_unfiltered',
                 'localization_fingerprinting_kalman',
-                'localization_fingerprinting_unfiltered']
+                'localization_fingerprinting_unfiltered'
+                ]
 
 #get mongo collection
 mongo = MongoClient()
 db = mongo.fingerprinting   # db
-errors_mongo = db['errors_mongo']
+errors_mongo = db['errors_mongo'] #errors_mongo
 
 for t in techniques:
         print t
         errors = np.asarray(list(errors_mongo.find(projection=[t]))[0][t])
+        print(np.mean(errors))
         values, base = np.histogram(errors)
         cumulative = np.cumsum(values)
         cumulative = cumulative/float(len(errors))
@@ -51,7 +53,8 @@ plt.plot(base[:-1], cumulative)'''
 
 
 plt.legend(['trilateration_kalman',
-            #'trilateration_unfiltered',
+            'trilateration_unfiltered',
             'fingerprinting_kalman',
-            'fingerprinting_unfiltered'],bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
-plt.show()
+            'fingerprinting_unfiltered'],
+            loc=4, borderaxespad=0.)
+#plt.show()

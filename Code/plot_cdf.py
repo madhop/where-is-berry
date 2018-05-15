@@ -57,4 +57,4 @@ plt.legend(['trilateration_kalman',
             'fingerprinting_kalman',
             'fingerprinting_unfiltered'],
             loc=4, borderaxespad=0.)
-#plt.show()
+plt.show()
